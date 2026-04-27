@@ -292,6 +292,50 @@ main{max-width:1140px;margin:0 auto;padding:32px 24px}
 .manual-input:focus{border-color:var(--accent)}
 .manual-input::placeholder{color:var(--text3)}
 
+
+/* FRIDGE MODE */
+.fridge-layout{display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start}
+.fridge-panel{background:var(--surface);border-radius:var(--r-lg);border:1px solid var(--border);padding:22px;position:sticky;top:82px}
+.fridge-panel-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.fridge-panel-sub{font-size:.78rem;color:var(--text3);margin-bottom:14px;line-height:1.5}
+.fridge-section-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:8px;margin-top:16px;display:block}
+.fridge-section-label:first-of-type{margin-top:0}
+.staple-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.staple-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:50px;font-size:.75rem;font-weight:500;border:1px solid var(--border);background:var(--surface2);color:var(--text2);transition:all .18s;user-select:none;cursor:pointer}
+.staple-chip.on{background:var(--mint-bg);border-color:var(--mint);color:var(--mint)}
+.staple-chip .cx{font-size:.65rem;color:var(--text3);line-height:1;transition:color .15s}
+.staple-chip:hover .cx{color:var(--red)}
+.fresh-list{display:flex;flex-direction:column;gap:5px;margin-bottom:8px}
+.fresh-item{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);font-size:.84rem;color:var(--text)}
+.fresh-add-row{display:flex;gap:7px}
+.fresh-input{flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.84rem;color:var(--text);background:var(--surface2);outline:none;transition:border .2s}
+.fresh-input:focus{border-color:var(--mint)}
+.fresh-input::placeholder{color:var(--text3)}
+.fridge-ts{font-size:.69rem;color:var(--text3);font-style:italic;margin-top:8px}
+.fridge-clear-btn{background:none;border:none;color:var(--text3);font-size:.74rem;cursor:pointer;padding:0;transition:color .2s;margin-top:5px;display:block;text-align:left}
+.fridge-clear-btn:hover{color:var(--red)}
+.add-staple-row{display:flex;gap:7px;margin-top:8px}
+.fridge-results{min-width:0}
+.fridge-group{margin-bottom:28px}
+.fridge-group-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:10px;letter-spacing:-.01em}
+.fgc{font-size:.73rem;font-weight:600;padding:2px 10px;border-radius:50px;background:var(--surface2);color:var(--text3)}
+.fridge-recipe-card{background:var(--surface);border-radius:var(--r-lg);border:1px solid var(--border);padding:16px 18px;margin-bottom:10px;transition:all .2s;cursor:pointer;position:relative;overflow:hidden}
+.fridge-recipe-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.fridge-recipe-card.ready::before{background:var(--mint)}
+.fridge-recipe-card.close::before{background:var(--yellow)}
+.fridge-recipe-card:hover{border-color:var(--border2);box-shadow:var(--shadow);transform:translateY(-1px)}
+.frc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:5px}
+.frc-name{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;color:var(--text);line-height:1.3}
+.frc-badge{font-size:.7rem;font-weight:700;padding:3px 10px;border-radius:50px;white-space:nowrap;flex-shrink:0}
+.badge-ready{background:var(--mint-bg);color:var(--mint)}
+.badge-close{background:var(--yellow-bg);color:var(--yellow)}
+.frc-missing{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.missing-pill{font-size:.7rem;font-weight:600;padding:2px 9px;border-radius:50px;background:var(--red-bg);color:var(--red)}
+.frc-meta{font-size:.73rem;color:var(--text3);margin-top:5px}
+.fridge-empty-state{text-align:center;padding:52px 20px;color:var(--text3)}
+.fridge-empty-state h3{font-size:1.1rem;color:var(--text2);margin-bottom:8px}
+.fridge-empty-state p{font-size:.86rem}
+
 /* PRINT */
 @media print{
   .top-nav,.bottom-nav,.btn,.recipe-actions,.day-empty,.clear-btn,.p-btn,.lucky-row,.search-row,.section-header button,.manual-add-row,.history-section{display:none!important}
@@ -315,6 +359,8 @@ main{max-width:1140px;margin:0 auto;padding:32px 24px}
   .form-row{grid-template-columns:1fr}
   .ing-row{grid-template-columns:1fr 58px 80px 38px 28px}
   .modal{padding:22px 18px}
+  .fridge-layout{grid-template-columns:1fr}
+  .fridge-panel{position:static}
 }
 @media(max-width:480px){
   .recipe-grid{grid-template-columns:1fr}
@@ -330,6 +376,7 @@ main{max-width:1140px;margin:0 auto;padding:32px 24px}
     <button class="tab-btn active" onclick="showView('recipes',this)">📖 Recipes<span class="badge" id="recipe-badge">0</span></button>
     <button class="tab-btn" onclick="showView('planner',this)">🗓 Week Plan</button>
     <button class="tab-btn" onclick="showView('grocery',this)">🛒 Grocery</button>
+    <button class="tab-btn" onclick="showView('fridge',this)">🧊 Fridge Mode</button>
   </div>
   <div class="nav-right">
     <div class="sync-pill" id="sync-pill"><div class="sdot"></div><span id="sync-label">Connecting…</span></div>
@@ -342,6 +389,7 @@ main{max-width:1140px;margin:0 auto;padding:32px 24px}
     <button class="bnav-btn active" onclick="showView('recipes',this)"><span class="bnav-icon">📖</span>Recipes</button>
     <button class="bnav-btn" onclick="showView('planner',this)"><span class="bnav-icon">🗓</span>Plan</button>
     <button class="bnav-btn" onclick="showView('grocery',this)"><span class="bnav-icon">🛒</span>Grocery</button>
+    <button class="bnav-btn" onclick="showView('fridge',this)"><span class="bnav-icon">🧊</span>Fridge</button>
   </div>
 </div>
 
@@ -396,6 +444,40 @@ main{max-width:1140px;margin:0 auto;padding:32px 24px}
       </div>
     </div>
     <div id="grocery-content"></div>
+  </div>
+
+
+  <!-- FRIDGE MODE -->
+  <div class="view" id="view-fridge">
+    <div class="section-header">
+      <h2 class="section-title">🧊 <span class="hi">Fridge Mode</span></h2>
+      <span style="font-size:.82rem;color:var(--text3)">What can I cook right now?</span>
+    </div>
+    <div class="fridge-layout">
+      <!-- LEFT PANEL: ingredients -->
+      <div class="fridge-panel">
+        <div class="fridge-panel-title">🥶 Your Fridge</div>
+        <div class="fridge-panel-sub">Check your staples, then add fresh ingredients you have right now.</div>
+        <span class="fridge-section-label">Pantry Staples</span>
+        <div class="staple-grid" id="staple-grid"></div>
+        <div class="add-staple-row">
+          <input class="fresh-input" id="staple-input" type="text" placeholder="Add a staple…" onkeydown="if(event.key==='Enter')addStaple()">
+          <button class="btn btn-secondary btn-sm" onclick="addStaple()">Add</button>
+        </div>
+        <span class="fridge-section-label" style="margin-top:20px">Fresh Ingredients</span>
+        <div class="fresh-list" id="fresh-list"></div>
+        <div class="fresh-add-row">
+          <input class="fresh-input" id="fresh-input" type="text" placeholder="e.g. chicken breast, broccoli…" onkeydown="if(event.key==='Enter')addFresh()">
+          <button class="btn btn-mint btn-sm" onclick="addFresh()">Add</button>
+        </div>
+        <div class="fridge-ts" id="fridge-ts"></div>
+        <button class="fridge-clear-btn" onclick="clearFresh()">✕ Clear fresh ingredients</button>
+      </div>
+      <!-- RIGHT PANEL: results -->
+      <div class="fridge-results" id="fridge-results">
+        <div class="fridge-empty-state"><h3>Add some ingredients</h3><p>Check your staples and add fresh ingredients on the left to see what you can cook!</p></div>
+      </div>
+    </div>
   </div>
 
 </main>
@@ -1008,6 +1090,182 @@ db.ref('recipes').once('value',snap=>{
       ingredients:[{name:'Chicken breast',qty:600,unit:'g',dept:'meat'},{name:'Broccoli',qty:1,unit:'piece(s)',dept:'produce'},{name:'Bell pepper',qty:2,unit:'piece(s)',dept:'produce'},{name:'Soy sauce',qty:3,unit:'tbsp',dept:'condiments'},{name:'Garlic cloves',qty:3,unit:'piece(s)',dept:'produce'},{name:'Ginger',qty:1,unit:'tsp',dept:'condiments'},{name:'Rice',qty:300,unit:'g',dept:'pantry'},{name:'Sesame oil',qty:1,unit:'tbsp',dept:'condiments'}]},
   });
 });
+
+// ── Fridge Mode ────────────────────────────────────────────────────────────
+const DEFAULT_STAPLES = [
+  'Olive oil','Garlic','Onion','Salt','Pepper','Butter','Eggs','Pasta','Rice',
+  'Flour','Sugar','Soy sauce','Tomato paste','Chicken broth','Lemon','Bread',
+  'Vegetable oil','Parmesan','Canned tomatoes','Vinegar'
+];
+
+let staples=[], freshItems=[], fridgeTimestamp=null;
+
+function initFridge(){
+  const saved=localStorage.getItem('cn-staples');
+  staples=saved?JSON.parse(saved):[...DEFAULT_STAPLES];
+  const savedFresh=localStorage.getItem('cn-fresh');
+  freshItems=savedFresh?JSON.parse(savedFresh):[];
+  fridgeTimestamp=localStorage.getItem('cn-fresh-ts')||null;
+}
+
+function saveFridge(){
+  localStorage.setItem('cn-staples',JSON.stringify(staples));
+  localStorage.setItem('cn-fresh',JSON.stringify(freshItems));
+  if(fridgeTimestamp)localStorage.setItem('cn-fresh-ts',fridgeTimestamp);
+}
+
+function renderFridge(){
+  renderStaples();
+  renderFreshList();
+  renderFridgeTimestamp();
+  scoreFridgeRecipes();
+}
+
+function renderStaples(){
+  const grid=document.getElementById('staple-grid');
+  if(!grid)return;
+  grid.innerHTML=staples.map((s,i)=>`
+    <span class="staple-chip on" onclick="removeStaple(${i})" title="Click to remove">
+      ${esc(s)}<span class="cx">✕</span>
+    </span>`).join('');
+}
+
+function renderFreshList(){
+  const list=document.getElementById('fresh-list');
+  if(!list)return;
+  if(!freshItems.length){list.innerHTML=`<div style="font-size:.8rem;color:var(--text3);padding:6px 2px;font-style:italic">No fresh ingredients added yet.</div>`;return;}
+  list.innerHTML=freshItems.map((item,i)=>`
+    <div class="fresh-item">
+      <span class="fresh-item-name">${esc(item)}</span>
+      <button class="remove-btn" onclick="removeFresh(${i})">✕</button>
+    </div>`).join('');
+}
+
+function renderFridgeTimestamp(){
+  const el=document.getElementById('fridge-ts');
+  if(!el)return;
+  if(!fridgeTimestamp||!freshItems.length){el.textContent='';return;}
+  const d=new Date(parseInt(fridgeTimestamp));
+  el.textContent='Last updated '+d.toLocaleDateString('en-CA',{weekday:'long'})+' at '+d.toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'});
+}
+
+function addStaple(){
+  const input=document.getElementById('staple-input');
+  const val=input.value.trim();if(!val)return;
+  if(!staples.map(s=>s.toLowerCase()).includes(val.toLowerCase())){
+    staples.push(val);saveFridge();renderFridge();
+  }
+  input.value='';
+}
+
+function removeStaple(i){
+  staples.splice(i,1);saveFridge();renderFridge();
+}
+
+function addFresh(){
+  const input=document.getElementById('fresh-input');
+  const val=input.value.trim();if(!val)return;
+  if(!freshItems.map(s=>s.toLowerCase()).includes(val.toLowerCase())){
+    freshItems.push(val);
+    fridgeTimestamp=Date.now().toString();
+    saveFridge();renderFridge();
+  }
+  input.value='';
+}
+
+function removeFresh(i){
+  freshItems.splice(i,1);
+  if(!freshItems.length)fridgeTimestamp=null;
+  saveFridge();renderFridge();
+}
+
+function clearFresh(){
+  freshItems=[];fridgeTimestamp=null;
+  localStorage.removeItem('cn-fresh');localStorage.removeItem('cn-fresh-ts');
+  renderFridge();
+}
+
+function scoreFridgeRecipes(){
+  const results=document.getElementById('fridge-results');
+  if(!results)return;
+  const allRecipes=Object.values(recipes);
+  if(!allRecipes.length){results.innerHTML=`<div class="fridge-empty-state"><h3>No recipes yet</h3><p>Add some recipes first!</p></div>`;return;}
+
+  // Build combined available ingredients list (staples + fresh), all lowercase
+  const available=[...staples,...freshItems].map(s=>s.toLowerCase().trim());
+  if(!available.length){results.innerHTML=`<div class="fridge-empty-state"><h3>Add some ingredients</h3><p>Check your staples and add fresh ingredients on the left to see what you can cook!</p></div>`;return;}
+
+  // Score each recipe
+  const scored=allRecipes.map(r=>{
+    const ings=r.ingredients||[];
+    if(!ings.length)return null;
+    const missing=[];
+    const matched=[];
+    ings.forEach(ing=>{
+      const ingName=ing.name.toLowerCase().trim();
+      // Fuzzy match: available ingredient appears in recipe ingredient name OR vice versa
+      const isMatch=available.some(a=>ingName.includes(a)||a.includes(ingName));
+      if(isMatch)matched.push(ing.name);
+      else missing.push(ing.name);
+    });
+    return{r,missing,matched,total:ings.length,matchCount:matched.length};
+  }).filter(Boolean);
+
+  const ready=scored.filter(s=>s.missing.length===0).sort((a,b)=>b.total-a.total);
+  const close=scored.filter(s=>s.missing.length>=1&&s.missing.length<=2).sort((a,b)=>a.missing.length-b.missing.length);
+
+  if(!ready.length&&!close.length){
+    results.innerHTML=`<div class="fridge-empty-state"><h3>Nothing matches yet</h3><p>Try adding more ingredients, or check that your staples are ticked.</p></div>`;return;
+  }
+
+  let html='';
+
+  if(ready.length){
+    html+=`<div class="fridge-group">
+      <div class="fridge-group-title">✅ Ready to cook <span class="fgc">${ready.length} recipe${ready.length>1?'s':''}</span></div>
+      ${ready.map(({r})=>fridgeCard(r,[],'ready')).join('')}
+    </div>`;
+  }
+
+  if(close.length){
+    html+=`<div class="fridge-group">
+      <div class="fridge-group-title">🟡 Missing 1–2 ingredients <span class="fgc">${close.length} recipe${close.length>1?'s':''}</span></div>
+      ${close.map(({r,missing})=>fridgeCard(r,missing,'close')).join('')}
+    </div>`;
+  }
+
+  results.innerHTML=html;
+}
+
+function fridgeCard(r,missing,type){
+  const badgeClass=type==='ready'?'badge-ready':'badge-close';
+  const badgeText=type==='ready'?'✅ Ready to cook':`Missing ${missing.length} ingredient${missing.length>1?'s':''}`;
+  const missingHtml=missing.length?`<div class="frc-missing">${missing.map(m=>`<span class="missing-pill">− ${esc(m)}</span>`).join('')}</div>`:'';
+  const meta=[(r.time?`⏱ ${esc(r.time)}`:''),(`👥 ${r.portions}p`)].filter(Boolean).join(' · ');
+  return `<div class="fridge-recipe-card ${type}" onclick="viewRecipe('${r.id}')">
+    <div class="frc-top">
+      <div class="frc-name">${esc(r.name)}</div>
+      <span class="frc-badge ${badgeClass}">${badgeText}</span>
+    </div>
+    <div class="frc-meta">${meta}</div>
+    ${missingHtml}
+  </div>`;
+}
+
+// Hook fridge into showView
+const _origShowView=showView;
+showView=function(v,btn){
+  _origShowView(v,btn);
+  if(v==='fridge'){initFridge();renderFridge();}
+};
+
+// Rescore when recipes change
+const _origRenderRecipes=renderRecipes;
+renderRecipes=function(){
+  _origRenderRecipes();
+  if(activeView==='fridge')scoreFridgeRecipes();
+};
+
 </script>
 </body>
 </html>
