@@ -85,6 +85,8 @@ button{font-family:'DM Sans',sans-serif;cursor:pointer}
 .bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:transparent;color:var(--text3);font-size:.6rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;transition:color .2s}
 .bnav-icon{font-size:1.2rem}
 .bnav-btn.active{color:var(--accent)}
+.bnav-icon-wrap{position:relative;display:inline-flex;align-items:center;justify-content:center}
+.bnav-dot{position:absolute;top:-2px;right:-6px;min-width:16px;height:16px;border-radius:50px;background:var(--accent);color:#fff;font-size:.55rem;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--surface);line-height:1}
 
 /* MAIN */
 main{max-width:1140px;margin:0 auto;padding:32px 24px}
@@ -299,7 +301,7 @@ main{max-width:1140px;margin:0 auto;padding:32px 24px}
 .grocery-action-bar .gab-left{display:flex;gap:8px;flex:1}
 .grocery-action-bar .gab-right{display:flex;gap:8px}
 @media(max-width:768px){
-  .grocery-action-bar{display:flex}
+  .grocery-action-bar{display:none}
   #view-grocery .section-header .btn-row{display:none}
   #view-grocery main-grocery-pad{padding-bottom:120px}
 }
@@ -400,7 +402,7 @@ main{max-width:1140px;margin:0 auto;padding:32px 24px}
   <div class="bnav-inner">
     <button class="bnav-btn active" onclick="showView('recipes',this)"><span class="bnav-icon">📖</span>Recipes</button>
     <button class="bnav-btn" onclick="showView('planner',this)"><span class="bnav-icon">🗓</span>Plan</button>
-    <button class="bnav-btn" onclick="showView('grocery',this)"><span class="bnav-icon">🛒</span>Grocery<span id="bnav-grocery-badge" style="display:none;font-size:.5rem;background:var(--accent);color:#fff;border-radius:50px;padding:1px 5px;margin-left:3px;font-weight:700;vertical-align:middle"></span></button>
+    <button class="bnav-btn" onclick="showView('grocery',this)"><span class="bnav-icon-wrap"><span class="bnav-icon">🛒</span><span class="bnav-dot" id="bnav-grocery-badge" style="display:none"></span></span>Grocery</button>
     <button class="bnav-btn" onclick="showView('fridge',this)"><span class="bnav-icon">🧊</span>Fridge</button>
   </div>
 </div>
@@ -694,8 +696,11 @@ function showView(v,btn){
   document.querySelectorAll('.tab-btn,.bnav-btn').forEach(el=>el.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
   document.querySelectorAll(`[onclick*="'${v}'"]`).forEach(el=>el.classList.add('active'));
+  // Show grocery action bar only on grocery tab
+  const gab=document.getElementById('grocery-action-bar');
+  if(gab)gab.style.display=v==='grocery'?'flex':'none';
   if(v==='planner'){renderPlanner();renderHistory();}
-  if(v==='grocery')renderGrocery();
+  if(v==='grocery'){renderGrocery();updateGroceryBadge();}
   if(v==='recipes')renderRecipes();
 }
 function updateBadge(){const n=Object.keys(recipes).length;document.getElementById('recipe-badge').textContent=n;}
@@ -1121,7 +1126,7 @@ function updateGroceryBadge(){
   const clearBtn=document.getElementById('btn-clear-checked');
   const uncheckBtn=document.getElementById('btn-uncheck-all');
   if(badge){if(unchecked>0&&total>0){badge.textContent=unchecked;badge.style.display='inline-flex';}else{badge.style.display='none';}}
-  if(bnav){if(unchecked>0&&total>0){bnav.textContent=unchecked;bnav.style.display='inline';}else{bnav.style.display='none';}}
+  if(bnav){if(unchecked>0&&total>0){bnav.textContent=unchecked>9?'9+':unchecked;bnav.style.display='flex';}else{bnav.style.display='none';}}
   if(clearBtn){clearBtn.style.display=checkedCount>0?'inline-flex':'none';}
   if(uncheckBtn){uncheckBtn.style.display=checkedCount>0?'inline-flex':'none';}
   // Mobile bar buttons
