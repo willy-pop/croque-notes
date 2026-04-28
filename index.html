@@ -298,6 +298,8 @@ main{max-width:1140px;margin:0 auto;padding:32px 24px}
 
 /* MOBILE GROCERY ACTION BAR */
 .grocery-action-bar{display:none;position:fixed;bottom:calc(60px + env(safe-area-inset-bottom,0px));left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:10px 16px;gap:8px;z-index:90;box-shadow:0 -4px 20px rgba(0,0,0,.2)}
+/* Only show on mobile AND only when on the grocery tab */
+@media(max-width:768px){.grocery-action-bar.active-tab{display:flex}}
 .grocery-action-bar .gab-left{display:flex;gap:8px;flex:1}
 .grocery-action-bar .gab-right{display:flex;gap:8px}
 
@@ -693,9 +695,9 @@ function showView(v,btn){
   document.querySelectorAll('.tab-btn,.bnav-btn').forEach(el=>el.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
   document.querySelectorAll(`[onclick*="'${v}'"]`).forEach(el=>el.classList.add('active'));
-  // Show grocery action bar only on grocery tab
+  // Toggle grocery action bar via class (CSS media query handles actual visibility)
   const gab=document.getElementById('grocery-action-bar');
-  if(gab)gab.style.display=v==='grocery'?'flex':'none';
+  if(gab){if(v==='grocery')gab.classList.add('active-tab');else gab.classList.remove('active-tab');}
   if(v==='planner'){renderPlanner();renderHistory();}
   if(v==='grocery'){renderGrocery();updateGroceryBadge();}
   if(v==='recipes')renderRecipes();
