@@ -293,6 +293,17 @@ main{max-width:1140px;margin:0 auto;padding:32px 24px}
 .manual-input::placeholder{color:var(--text3)}
 
 
+
+/* MOBILE GROCERY ACTION BAR */
+.grocery-action-bar{display:none;position:fixed;bottom:calc(60px + env(safe-area-inset-bottom,0px));left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:10px 16px;gap:8px;z-index:90;box-shadow:0 -4px 20px rgba(0,0,0,.2)}
+.grocery-action-bar .gab-left{display:flex;gap:8px;flex:1}
+.grocery-action-bar .gab-right{display:flex;gap:8px}
+@media(max-width:768px){
+  .grocery-action-bar{display:flex}
+  #view-grocery .section-header .btn-row{display:none}
+  #view-grocery main-grocery-pad{padding-bottom:120px}
+}
+
 /* FRIDGE MODE */
 .fridge-layout{display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start}
 .fridge-panel{background:var(--surface);border-radius:var(--r-lg);border:1px solid var(--border);padding:22px;position:sticky;top:82px}
@@ -361,6 +372,7 @@ main{max-width:1140px;margin:0 auto;padding:32px 24px}
   .modal{padding:22px 18px}
   .fridge-layout{grid-template-columns:1fr}
   .fridge-panel{position:static}
+  #view-grocery{padding-bottom:80px}
 }
 @media(max-width:480px){
   .recipe-grid{grid-template-columns:1fr}
@@ -434,7 +446,7 @@ main{max-width:1140px;margin:0 auto;padding:32px 24px}
   </div>
 
   <!-- GROCERY -->
-  <div class="view" id="view-grocery">
+  <div class="view" id="view-grocery" style="padding-bottom:0">
     <div class="section-header">
       <h2 class="section-title">Grocery <span class="hi">List</span></h2>
       <div class="btn-row">
@@ -446,6 +458,18 @@ main{max-width:1140px;margin:0 auto;padding:32px 24px}
     </div>
     <div id="grocery-content"></div>
   </div>
+
+<!-- MOBILE GROCERY ACTION BAR -->
+<div class="grocery-action-bar" id="grocery-action-bar">
+  <div class="gab-left">
+    <button class="btn btn-secondary btn-sm" id="mob-uncheck-all" onclick="uncheckAll()" style="display:none">↺ Uncheck all</button>
+    <button class="btn btn-danger btn-sm" id="mob-clear-checked" onclick="clearChecked()" style="display:none">🗑 Clear checked</button>
+  </div>
+  <div class="gab-right">
+    <button class="btn btn-mint btn-sm" onclick="exportText()">📤 Share</button>
+    <button class="btn btn-secondary btn-sm" onclick="window.print()">🖨</button>
+  </div>
+</div>
 
 
   <!-- FRIDGE MODE -->
@@ -1100,6 +1124,11 @@ function updateGroceryBadge(){
   if(bnav){if(unchecked>0&&total>0){bnav.textContent=unchecked;bnav.style.display='inline';}else{bnav.style.display='none';}}
   if(clearBtn){clearBtn.style.display=checkedCount>0?'inline-flex':'none';}
   if(uncheckBtn){uncheckBtn.style.display=checkedCount>0?'inline-flex':'none';}
+  // Mobile bar buttons
+  const mobClear=document.getElementById('mob-clear-checked');
+  const mobUncheck=document.getElementById('mob-uncheck-all');
+  if(mobClear){mobClear.style.display=checkedCount>0?'inline-flex':'none';}
+  if(mobUncheck){mobUncheck.style.display=checkedCount>0?'inline-flex':'none';}
 }
 
 function exportText(){
