@@ -119,7 +119,7 @@ main{max-width:1140px;margin:0 auto;padding:32px 24px}
 
 /* RECIPE GRID */
 .recipe-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
-.recipe-card{background:var(--surface);border-radius:var(--r-lg);border:1px solid var(--border);padding:20px;transition:all .22s;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.recipe-card{background:var(--surface);border-radius:var(--r-lg);border:1px solid var(--border);padding:20px;transition:all .22s;display:flex;flex-direction:column;position:relative;overflow:hidden;cursor:pointer}
 .recipe-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--mint));opacity:0;transition:opacity .22s}
 .recipe-card:hover{box-shadow:var(--shadow);transform:translateY(-2px);border-color:var(--border2)}
 .recipe-card:hover::after{opacity:1}
@@ -142,7 +142,7 @@ main{max-width:1140px;margin:0 auto;padding:32px 24px}
 .star.lit{color:var(--yellow)}
 .star:hover{transform:scale(1.25)}
 .rating-label{font-size:.7rem;color:var(--text3);margin-left:4px}
-.recipe-actions{display:flex;gap:6px;margin-top:auto;padding-top:12px;flex-wrap:wrap}
+.recipe-actions{display:none}
 
 /* EMPTY STATE */
 .empty-state{grid-column:1/-1;text-align:center;padding:72px 20px}
@@ -350,6 +350,17 @@ main{max-width:1140px;margin:0 auto;padding:32px 24px}
 
 
 
+
+
+/* RECIPE CARD MENU */
+.recipe-card-menu-btn{position:absolute;top:12px;right:12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:.9rem;color:var(--text2);cursor:pointer;z-index:2;transition:all .2s;line-height:1}
+.recipe-card-menu-btn:hover{background:var(--surface3);color:var(--text)}
+.recipe-card-menu{position:fixed;z-index:9999;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);box-shadow:var(--shadow);min-width:150px;padding:6px;display:none}
+.recipe-card-menu.open{display:block}
+.recipe-card-menu-item{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;font-size:.84rem;color:var(--text2);cursor:pointer;transition:all .18s;border:none;background:none;width:100%;text-align:left;font-family:'DM Sans',sans-serif}
+.recipe-card-menu-item:hover{background:var(--surface2);color:var(--text)}
+.recipe-card-menu-item.danger{color:var(--red)}
+.recipe-card-menu-item.danger:hover{background:var(--red-bg)}
 
 /* GROCERY OVERFLOW MENU */
 .overflow-menu-wrap{position:relative;display:inline-block}
@@ -913,23 +924,18 @@ function renderRecipes(){
     const recent=ds!==null&&ds<=7;
     const tags=[...(r.tags||[]).map(t=>`<span class="tag ${TAG_CSS[t]||''}">${TAG_LBL[t]||t}</span>`),(r.customTags||[]).map(t=>`<span class="tag" style="background:var(--violet-bg);color:var(--violet)">${esc(t)}</span>`)].flat().join('');
     const rating=r.rating||0;
-    const starsHtml=`<div class="stars-row">${[1,2,3,4,5].map(i=>`<span class="star${i<=rating?' lit':''}" onclick="openRateModal('${r.id}',event)">★</span>`).join('')}<span class="rating-label">${rating?RATE_HINTS[rating-1]:'Not rated yet'}</span></div>`;
-    return `<div class="recipe-card">
-      <div class="recipe-name">${esc(r.name)}</div>
+    const starsHtml=`<div class="stars-row" onclick="event.stopPropagation()">${[1,2,3,4,5].map(i=>`<span class="star${i<=rating?' lit':''}" onclick="openRateModal('${r.id}',event)">★</span>`).join('')}<span class="rating-label">${rating?RATE_HINTS[rating-1]:'Not rated yet'}</span></div>`;
+    return `<div class="recipe-card" onclick="handleCardClick(event,'${r.id}')">
+      <button class="recipe-card-menu-btn" onclick="openCardMenu(event,'${r.id}',this)" title="More options">⋯</button>
+      <div class="recipe-name" style="padding-right:32px">${esc(r.name)}</div>
       <div class="recipe-meta">
         <span>👥 ${r.portions}p</span>${r.time?`<span>⏱ ${esc(r.time)}</span>`:''}
         <span>🥕 ${(r.ingredients||[]).length}</span>
       </div>
-      ${r.source?`<div class="recipe-source">📖 ${isURL(r.source)?`<a href="${esc(r.source)}" target="_blank" rel="noopener">${esc(r.source)}</a>`:esc(r.source)}</div>`:''}
+      ${r.source?`<div class="recipe-source">📖 ${isURL(r.source)?`<a href="${esc(r.source)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${esc(r.source)}</a>`:esc(r.source)}</div>`:''}
       ${tags?`<div class="tag-row">${tags}</div>`:''}
       ${starsHtml}
       ${lc?`<div class="last-cooked${recent?' recent':''}">${recent?'✅ ':''} ${lc}</div>`:''}
-      <div class="recipe-actions">
-        <button class="btn btn-secondary btn-sm" onclick="viewRecipe('${r.id}')">View</button>
-        <button class="btn btn-secondary btn-sm" onclick="editRecipe('${r.id}')">Edit</button>
-        <button class="btn btn-secondary btn-sm" onclick="duplicateRecipe('${r.id}')">Duplicate</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteRecipe('${r.id}')">Delete</button>
-      </div>
     </div>`;
   }).join('');
   updateBadge();
@@ -2003,6 +2009,64 @@ function closeOverflowMenu(){
   if(menu)menu.classList.remove('open');
 }
 document.addEventListener('click',function(){closeOverflowMenu();});
+
+
+// ── Recipe card click + menu ──────────────────────────────────────────────
+function handleCardClick(e, id){
+  // Don't open detail if clicking the menu button or stars
+  if(e.target.closest('.recipe-card-menu-btn')||
+     e.target.closest('.recipe-card-menu')||
+     e.target.closest('.stars-row')||
+     e.target.tagName==='A') return;
+  viewRecipe(id);
+}
+
+let activeCardMenu=null;
+
+function openCardMenu(e, id, btn){
+  e.stopPropagation();
+  // Close any open menu
+  document.querySelectorAll('.recipe-card-menu.open').forEach(m=>m.remove());
+  if(activeCardMenu===id){activeCardMenu=null;return;}
+  activeCardMenu=id;
+  const menu=document.createElement('div');
+  menu.className='recipe-card-menu open';
+  menu.dataset.rid=id;
+  menu.innerHTML=
+    '<button class="recipe-card-menu-item" data-action="edit">✏️ Edit</button>'+
+    '<button class="recipe-card-menu-item" data-action="dupe">📋 Duplicate</button>'+
+    '<button class="recipe-card-menu-item danger" data-action="delete">🗑 Delete</button>';
+  menu.querySelectorAll('.recipe-card-menu-item').forEach(btn=>{
+    btn.addEventListener('click',function(){
+      const a=this.dataset.action;
+      if(a==='edit')editRecipe(id);
+      else if(a==='dupe')duplicateRecipe(id);
+      else if(a==='delete')deleteRecipe(id);
+      closeCardMenus();
+    });
+  });
+  document.body.appendChild(menu);
+  // Position near the button
+  const rect=btn.getBoundingClientRect();
+  let top=rect.bottom+4;
+  let left=rect.right-150;
+  if(top+120>window.innerHeight-16)top=rect.top-124;
+  if(left<8)left=8;
+  menu.style.top=top+'px';
+  menu.style.left=left+'px';
+  // Close on outside click
+  setTimeout(()=>{
+    function dismiss(ev){
+      if(!menu.contains(ev.target)){closeCardMenus();document.removeEventListener('click',dismiss,true);}
+    }
+    document.addEventListener('click',dismiss,true);
+  },10);
+}
+
+function closeCardMenus(){
+  document.querySelectorAll('.recipe-card-menu').forEach(m=>m.remove());
+  activeCardMenu=null;
+}
 
 </script>
 
