@@ -317,6 +317,30 @@ main{max-width:1140px;margin:0 auto;padding:32px 24px}
 .grocery-action-bar .gab-right{display:flex;gap:8px}
 
 
+
+/* INSPIRE ME */
+.inspire-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;max-height:62vh;overflow-y:auto;padding-right:4px;margin-bottom:4px}
+.inspire-card{background:var(--surface2);border-radius:var(--r-lg);border:1px solid var(--border);padding:16px;display:flex;flex-direction:column;gap:6px;transition:all .2s;position:relative}
+.inspire-card:hover{border-color:var(--border2);box-shadow:var(--shadow)}
+.inspire-card.added{border-color:var(--mint);opacity:.7}
+.inspire-card-name{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;color:var(--text);line-height:1.3}
+.inspire-card-source{font-size:.72rem;color:var(--accent);font-weight:600}
+.inspire-card-desc{font-size:.78rem;color:var(--text3);line-height:1.5;flex:1}
+.inspire-card-meta{display:flex;gap:6px;flex-wrap:wrap}
+.inspire-pill{font-size:.68rem;font-weight:600;padding:2px 8px;border-radius:50px;background:var(--surface3);color:var(--text3)}
+.inspire-pill.time{background:var(--yellow-bg);color:var(--yellow)}
+.inspire-pill.cuisine{background:var(--violet-bg);color:var(--violet)}
+.inspire-pill.diff{background:var(--mint-bg);color:var(--mint)}
+.inspire-card-actions{display:flex;gap:8px;margin-top:6px;align-items:center}
+.inspire-added-badge{font-size:.75rem;font-weight:700;color:var(--mint);display:flex;align-items:center;gap:4px}
+.inspire-search{width:100%;padding:9px 14px;border:1px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.85rem;color:var(--text);background:var(--surface2);outline:none;margin-bottom:14px;transition:border .2s}
+.inspire-search:focus{border-color:var(--accent)}
+.inspire-search::placeholder{color:var(--text3)}
+.inspire-filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+@media(max-width:768px){
+  .inspire-grid{grid-template-columns:1fr;max-height:55vh}
+}
+
 /* FRIDGE MODE */
 .fridge-layout{display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start}
 .fridge-panel{background:var(--surface);border-radius:var(--r-lg);border:1px solid var(--border);padding:22px;position:sticky;top:82px}
@@ -426,7 +450,10 @@ main{max-width:1140px;margin:0 auto;padding:32px 24px}
   <div class="view active" id="view-recipes">
     <div class="section-header">
       <h2 class="section-title">Our <span class="hi">Recipes</span></h2>
-      <button class="btn btn-primary" onclick="openRecipeModal()">+ Add Recipe</button>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="openInspireModal()">✨ Get Inspired</button>
+        <button class="btn btn-primary" onclick="openRecipeModal()">+ Add Recipe</button>
+      </div>
     </div>
     <div class="search-row">
       <div class="search-wrap">
@@ -520,6 +547,31 @@ main{max-width:1140px;margin:0 auto;padding:32px 24px}
       </div>
     </div>
   </div>
+
+
+<!-- INSPIRE ME MODAL -->
+<div class="modal-overlay" id="modal-inspire" style="z-index:210">
+  <div class="modal" style="max-width:820px">
+    <div class="modal-header">
+      <h2>✨ Get Inspired</h2>
+      <button class="modal-close" onclick="closeModal('modal-inspire')">✕</button>
+    </div>
+    <p style="font-size:.82rem;color:var(--text3);margin-bottom:14px">Curated recipes from Serious Eats, NYT Cooking, Bon Appétit & more. Tap <strong style="color:var(--text2)">Add to my recipes</strong> on anything that catches your eye — it'll land in your recipe list with a "Want to try" tag.</p>
+    <input class="inspire-search" id="inspire-search" type="text" placeholder="Search by name, cuisine, or ingredient…" oninput="renderInspireGrid()">
+    <div class="inspire-filter-row" id="inspire-filters">
+      <span class="chip" data-ifilter="all" onclick="setInspireFilter('all',this)" style="background:var(--accent);color:#fff;border-color:var(--accent)">All</span>
+      <span class="chip" data-ifilter="Italian" onclick="setInspireFilter('Italian',this)">🍝 Italian</span>
+      <span class="chip" data-ifilter="French" onclick="setInspireFilter('French',this)">🥐 French</span>
+      <span class="chip" data-ifilter="Asian" onclick="setInspireFilter('Asian',this)">🍜 Asian</span>
+      <span class="chip" data-ifilter="Mexican" onclick="setInspireFilter('Mexican',this)">🌮 Mexican</span>
+      <span class="chip" data-ifilter="Comfort" onclick="setInspireFilter('Comfort',this)">🍲 Comfort</span>
+      <span class="chip" data-ifilter="Japanese" onclick="setInspireFilter('Japanese',this)">🍱 Japanese</span>
+      <span class="chip" data-ifilter="Indian" onclick="setInspireFilter('Indian',this)">🍛 Indian</span>
+      <span class="chip" data-ifilter="Quick" onclick="setInspireFilter('Quick',this)">⚡ Quick</span>
+    </div>
+    <div class="inspire-grid" id="inspire-grid"></div>
+  </div>
+</div>
 
 </main>
 
@@ -1484,6 +1536,125 @@ renderRecipes=function(){
   _origRenderRecipes();
   if(activeView==='fridge')scoreFridgeRecipes();
 };
+
+// ── Inspire Me ────────────────────────────────────────────────────────────
+let inspireFilterActive='all';
+
+const IR=[
+  {id:'i01',name:'Cacio e Pepe',src:'Serious Eats',cui:'Italian',tm:'25 min',dif:'Medium',hot:false,dsc:'The Roman pasta classic - just pecorino, black pepper, and pasta water. Deceptively simple, incredibly satisfying.',tgs:['comfort'],ing:[{name:'Spaghetti',qty:400,unit:'g',dept:'pantry'},{name:'Pecorino Romano',qty:150,unit:'g',dept:'dairy'},{name:'Black pepper',qty:2,unit:'tsp',dept:'condiments'},{name:'Salt',qty:1,unit:'tsp',dept:'condiments'}]},
+  {id:'i02',name:'Carbonara',src:'The Food Lab',cui:'Italian',tm:'30 min',dif:'Medium',hot:false,dsc:'Guanciale, eggs, and Parmesan - no cream, ever. A perfectly emulsified Roman classic.',tgs:['comfort','fancy'],ing:[{name:'Spaghetti',qty:400,unit:'g',dept:'pantry'},{name:'Guanciale',qty:200,unit:'g',dept:'meat'},{name:'Eggs',qty:4,unit:'piece(s)',dept:'dairy'},{name:'Parmesan',qty:100,unit:'g',dept:'dairy'},{name:'Black pepper',qty:2,unit:'tsp',dept:'condiments'}]},
+  {id:'i03',name:'Amatriciana',src:'NYT Cooking',cui:'Italian',tm:'35 min',dif:'Easy',hot:true,dsc:'Spicy tomato sauce with guanciale, chili flakes, and Pecorino. A Roman staple that punches above its weight.',tgs:['comfort','quick'],ing:[{name:'Rigatoni',qty:400,unit:'g',dept:'pantry'},{name:'Guanciale',qty:200,unit:'g',dept:'meat'},{name:'Crushed tomatoes',qty:400,unit:'g',dept:'pantry'},{name:'Chili flakes',qty:1,unit:'tsp',dept:'condiments'},{name:'Pecorino Romano',qty:80,unit:'g',dept:'dairy'}]},
+  {id:'i04',name:'Beef Ragu alla Bolognese',src:'The Food Lab',cui:'Italian',tm:'3 hrs',dif:'Weekend',hot:false,dsc:'The real deal - slow-cooked beef and pork with milk, wine, and minimal tomato. Worth every minute.',tgs:['comfort','fancy'],ing:[{name:'Ground beef',qty:400,unit:'g',dept:'meat'},{name:'Ground pork',qty:200,unit:'g',dept:'meat'},{name:'Whole milk',qty:200,unit:'ml',dept:'dairy'},{name:'White wine',qty:150,unit:'ml',dept:'other'},{name:'Crushed tomatoes',qty:200,unit:'g',dept:'pantry'},{name:'Onion',qty:1,unit:'piece(s)',dept:'produce'},{name:'Carrot',qty:1,unit:'piece(s)',dept:'produce'},{name:'Celery',qty:2,unit:'piece(s)',dept:'produce'},{name:'Tagliatelle',qty:400,unit:'g',dept:'pantry'}]},
+  {id:'i05',name:'Pasta al Limone',src:'Bon Appetit',cui:'Italian',tm:'20 min',dif:'Easy',hot:false,dsc:'Bright creamy lemon pasta with Parmesan and butter. Ready in 20 minutes and tastes like summer.',tgs:['quick','easy'],ing:[{name:'Spaghetti',qty:400,unit:'g',dept:'pantry'},{name:'Lemon',qty:2,unit:'piece(s)',dept:'produce'},{name:'Butter',qty:60,unit:'g',dept:'dairy'},{name:'Parmesan',qty:80,unit:'g',dept:'dairy'},{name:'Heavy cream',qty:60,unit:'ml',dept:'dairy'}]},
+  {id:'i06',name:'Arrabbiata',src:'Serious Eats',cui:'Italian',tm:'25 min',dif:'Easy',hot:true,dsc:'Fiery garlic and chili tomato sauce. Simple, bold, deeply satisfying.',tgs:['quick','easy'],ing:[{name:'Penne',qty:400,unit:'g',dept:'pantry'},{name:'Crushed tomatoes',qty:400,unit:'g',dept:'pantry'},{name:'Garlic cloves',qty:6,unit:'piece(s)',dept:'produce'},{name:'Chili flakes',qty:2,unit:'tsp',dept:'condiments'},{name:'Olive oil',qty:4,unit:'tbsp',dept:'condiments'}]},
+  {id:'i07',name:'Boeuf Bourguignon',src:'Julia Child',cui:'French',tm:'3 hrs',dif:'Weekend',hot:false,dsc:'Beef slowly cooked in Burgundy wine with mushrooms, lardons, and pearl onions. The ultimate French braise.',tgs:['comfort','fancy'],ing:[{name:'Beef chuck',qty:1200,unit:'g',dept:'meat'},{name:'Red wine',qty:750,unit:'ml',dept:'other'},{name:'Bacon lardons',qty:200,unit:'g',dept:'meat'},{name:'Mushrooms',qty:300,unit:'g',dept:'produce'},{name:'Pearl onions',qty:200,unit:'g',dept:'produce'},{name:'Beef broth',qty:500,unit:'ml',dept:'pantry'},{name:'Garlic cloves',qty:4,unit:'piece(s)',dept:'produce'}]},
+  {id:'i08',name:'French Onion Soup',src:'The Food Lab',cui:'French',tm:'2 hrs',dif:'Weekend',hot:false,dsc:'Deeply caramelised onions, rich beef broth, and a gruyere-laden crouton. A bistro icon.',tgs:['comfort','fancy'],ing:[{name:'Onions',qty:1500,unit:'g',dept:'produce'},{name:'Beef broth',qty:1500,unit:'ml',dept:'pantry'},{name:'Gruyere',qty:200,unit:'g',dept:'dairy'},{name:'Baguette',qty:1,unit:'piece(s)',dept:'bakery'},{name:'Butter',qty:60,unit:'g',dept:'dairy'},{name:'Dry sherry',qty:60,unit:'ml',dept:'other'}]},
+  {id:'i09',name:'Poulet Roti',src:'Julia Child',cui:'French',tm:'90 min',dif:'Easy',hot:false,dsc:'A perfectly roasted chicken with crispy skin and juicy meat. The dish every cook should master.',tgs:['comfort','easy'],ing:[{name:'Whole chicken',qty:1800,unit:'g',dept:'meat'},{name:'Butter',qty:60,unit:'g',dept:'dairy'},{name:'Garlic cloves',qty:4,unit:'piece(s)',dept:'produce'},{name:'Thyme',qty:4,unit:'piece(s)',dept:'produce'},{name:'Lemon',qty:1,unit:'piece(s)',dept:'produce'}]},
+  {id:'i10',name:'Steak au Poivre',src:'Serious Eats',cui:'French',tm:'30 min',dif:'Medium',hot:true,dsc:'Pan-seared peppered steak with a cognac cream sauce. Impossibly fancy for how fast it comes together.',tgs:['fancy'],ing:[{name:'Beef tenderloin steaks',qty:600,unit:'g',dept:'meat'},{name:'Black pepper',qty:3,unit:'tbsp',dept:'condiments'},{name:'Cognac',qty:60,unit:'ml',dept:'other'},{name:'Heavy cream',qty:150,unit:'ml',dept:'dairy'},{name:'Shallots',qty:2,unit:'piece(s)',dept:'produce'},{name:'Butter',qty:30,unit:'g',dept:'dairy'}]},
+  {id:'i11',name:'Croque Monsieur',src:'NYT Cooking',cui:'French',tm:'25 min',dif:'Easy',hot:false,dsc:'The ultimate French ham and cheese sandwich - bechamel-smothered, gruyere-topped, broiled to bubbly perfection.',tgs:['comfort','quick','easy'],ing:[{name:'Sandwich bread',qty:8,unit:'piece(s)',dept:'bakery'},{name:'Ham',qty:200,unit:'g',dept:'meat'},{name:'Gruyere',qty:200,unit:'g',dept:'dairy'},{name:'Butter',qty:40,unit:'g',dept:'dairy'},{name:'Flour',qty:2,unit:'tbsp',dept:'pantry'},{name:'Whole milk',qty:250,unit:'ml',dept:'dairy'},{name:'Dijon mustard',qty:2,unit:'tbsp',dept:'condiments'}]},
+  {id:'i12',name:'Mapo Tofu',src:'Serious Eats',cui:'Asian',tm:'30 min',dif:'Easy',hot:true,dsc:'Silken tofu in a numbing spicy Sichuan sauce with ground pork. One of the most satisfying dishes on earth.',tgs:['comfort','quick'],ing:[{name:'Silken tofu',qty:600,unit:'g',dept:'produce'},{name:'Ground pork',qty:200,unit:'g',dept:'meat'},{name:'Doubanjiang chili bean paste',qty:2,unit:'tbsp',dept:'condiments'},{name:'Garlic cloves',qty:4,unit:'piece(s)',dept:'produce'},{name:'Ginger',qty:1,unit:'tbsp',dept:'condiments'},{name:'Chicken broth',qty:200,unit:'ml',dept:'pantry'},{name:'Soy sauce',qty:2,unit:'tbsp',dept:'condiments'},{name:'Sichuan peppercorns',qty:1,unit:'tsp',dept:'condiments'}]},
+  {id:'i13',name:'Korean Braised Short Ribs',src:'NYT Cooking',cui:'Asian',tm:'2.5 hrs',dif:'Weekend',hot:false,dsc:'Meltingly tender beef short ribs braised in a sweet-savory Korean sauce of soy, pear, garlic and ginger.',tgs:['comfort','fancy'],ing:[{name:'Beef short ribs',qty:1500,unit:'g',dept:'meat'},{name:'Asian pear',qty:1,unit:'piece(s)',dept:'produce'},{name:'Soy sauce',qty:80,unit:'ml',dept:'condiments'},{name:'Garlic cloves',qty:8,unit:'piece(s)',dept:'produce'},{name:'Ginger',qty:2,unit:'tbsp',dept:'condiments'},{name:'Brown sugar',qty:3,unit:'tbsp',dept:'pantry'},{name:'Carrots',qty:2,unit:'piece(s)',dept:'produce'}]},
+  {id:'i14',name:'Beef and Broccoli',src:'The Food Lab',cui:'Asian',tm:'30 min',dif:'Easy',hot:false,dsc:'Better than takeout - velvet-tender beef and crisp broccoli in a glossy savory sauce.',tgs:['quick','easy'],ing:[{name:'Flank steak',qty:600,unit:'g',dept:'meat'},{name:'Broccoli',qty:400,unit:'g',dept:'produce'},{name:'Soy sauce',qty:4,unit:'tbsp',dept:'condiments'},{name:'Oyster sauce',qty:2,unit:'tbsp',dept:'condiments'},{name:'Garlic cloves',qty:4,unit:'piece(s)',dept:'produce'},{name:'Ginger',qty:1,unit:'tbsp',dept:'condiments'},{name:'Cornstarch',qty:2,unit:'tbsp',dept:'pantry'},{name:'Rice',qty:300,unit:'g',dept:'pantry'}]},
+  {id:'i15',name:'Dan Dan Noodles (allergen-free)',src:'Serious Eats',cui:'Asian',tm:'35 min',dif:'Medium',hot:true,dsc:'Sichuan noodles with spiced ground pork in a numbing chili broth. Adapted to be completely allergen-safe.',tgs:['comfort'],ing:[{name:'Fresh noodles',qty:400,unit:'g',dept:'pantry'},{name:'Ground pork',qty:300,unit:'g',dept:'meat'},{name:'Doubanjiang',qty:2,unit:'tbsp',dept:'condiments'},{name:'Soy sauce',qty:3,unit:'tbsp',dept:'condiments'},{name:'Sichuan peppercorns',qty:1,unit:'tsp',dept:'condiments'},{name:'Garlic cloves',qty:4,unit:'piece(s)',dept:'produce'},{name:'Chili oil',qty:2,unit:'tbsp',dept:'condiments'}]},
+  {id:'i16',name:'Kung Pao Chicken (cashew)',src:'Serious Eats',cui:'Asian',tm:'30 min',dif:'Easy',hot:true,dsc:'The Sichuan classic with cashews instead - crispy chicken, dried chilies, Sichuan pepper in a tangy glaze.',tgs:['quick'],ing:[{name:'Chicken thighs',qty:600,unit:'g',dept:'meat'},{name:'Cashews',qty:80,unit:'g',dept:'pantry'},{name:'Dried red chilies',qty:8,unit:'piece(s)',dept:'condiments'},{name:'Soy sauce',qty:3,unit:'tbsp',dept:'condiments'},{name:'Rice vinegar',qty:2,unit:'tbsp',dept:'condiments'},{name:'Sichuan peppercorns',qty:1,unit:'tsp',dept:'condiments'},{name:'Garlic cloves',qty:4,unit:'piece(s)',dept:'produce'}]},
+  {id:'i17',name:'Birria Tacos',src:'Serious Eats',cui:'Mexican',tm:'3 hrs',dif:'Weekend',hot:true,dsc:'Slow-braised beef in a rich chili-tomato broth, crisped in a pan and dipped in consomme. The internet broke over these.',tgs:['comfort','fancy'],ing:[{name:'Beef chuck',qty:1500,unit:'g',dept:'meat'},{name:'Guajillo chilies',qty:6,unit:'piece(s)',dept:'condiments'},{name:'Ancho chilies',qty:3,unit:'piece(s)',dept:'condiments'},{name:'Crushed tomatoes',qty:400,unit:'g',dept:'pantry'},{name:'Garlic cloves',qty:6,unit:'piece(s)',dept:'produce'},{name:'Corn tortillas',qty:16,unit:'piece(s)',dept:'bakery'},{name:'Lime',qty:3,unit:'piece(s)',dept:'produce'}]},
+  {id:'i18',name:'Chicken Tinga',src:'NYT Cooking',cui:'Mexican',tm:'45 min',dif:'Easy',hot:true,dsc:'Shredded chicken in a smoky chipotle-tomato sauce. Insanely versatile - tacos, tostadas, rice bowls.',tgs:['easy','quick'],ing:[{name:'Chicken thighs',qty:800,unit:'g',dept:'meat'},{name:'Chipotle peppers in adobo',qty:3,unit:'piece(s)',dept:'condiments'},{name:'Crushed tomatoes',qty:400,unit:'g',dept:'pantry'},{name:'Onion',qty:1,unit:'piece(s)',dept:'produce'},{name:'Garlic cloves',qty:4,unit:'piece(s)',dept:'produce'},{name:'Corn tortillas',qty:12,unit:'piece(s)',dept:'bakery'}]},
+  {id:'i19',name:'Chiles Rellenos',src:'Bon Appetit',cui:'Mexican',tm:'60 min',dif:'Medium',hot:true,dsc:'Roasted poblano peppers stuffed with cheese, dipped in egg batter and pan-fried. A Mexican classic worth the effort.',tgs:['fancy'],ing:[{name:'Poblano peppers',qty:6,unit:'piece(s)',dept:'produce'},{name:'Oaxaca cheese',qty:300,unit:'g',dept:'dairy'},{name:'Ground beef',qty:200,unit:'g',dept:'meat'},{name:'Eggs',qty:4,unit:'piece(s)',dept:'dairy'},{name:'Flour',qty:3,unit:'tbsp',dept:'pantry'},{name:'Crushed tomatoes',qty:400,unit:'g',dept:'pantry'}]},
+  {id:'i20',name:'Arroz con Pollo',src:'NYT Cooking',cui:'Mexican',tm:'60 min',dif:'Easy',hot:false,dsc:'One-pan Latin chicken and rice cooked together in a saffron-scented broth until gloriously golden.',tgs:['comfort','easy'],ing:[{name:'Chicken thighs',qty:1000,unit:'g',dept:'meat'},{name:'Long-grain rice',qty:400,unit:'g',dept:'pantry'},{name:'Chicken broth',qty:800,unit:'ml',dept:'pantry'},{name:'Bell peppers',qty:2,unit:'piece(s)',dept:'produce'},{name:'Onion',qty:1,unit:'piece(s)',dept:'produce'},{name:'Garlic cloves',qty:4,unit:'piece(s)',dept:'produce'},{name:'Saffron',qty:1,unit:'pinch',dept:'condiments'}]},
+  {id:'i21',name:'Smash Burgers',src:'The Food Lab',cui:'Comfort',tm:'25 min',dif:'Easy',hot:false,dsc:'Thin crispy-edged smash burgers with American cheese and special sauce. The only burger method you need.',tgs:['comfort','quick','easy'],ing:[{name:'Ground beef 80/20',qty:600,unit:'g',dept:'meat'},{name:'American cheese',qty:8,unit:'piece(s)',dept:'dairy'},{name:'Brioche buns',qty:4,unit:'piece(s)',dept:'bakery'},{name:'Onion',qty:1,unit:'piece(s)',dept:'produce'},{name:'Pickles',qty:1,unit:'package',dept:'condiments'},{name:'Mayonnaise',qty:4,unit:'tbsp',dept:'condiments'}]},
+  {id:'i22',name:'Mac and Cheese (stovetop)',src:'Serious Eats',cui:'Comfort',tm:'30 min',dif:'Easy',hot:false,dsc:'Perfectly creamy stovetop mac with a trick for ultra-smooth never-grainy cheese sauce.',tgs:['comfort','easy'],ing:[{name:'Elbow macaroni',qty:400,unit:'g',dept:'pantry'},{name:'Sharp cheddar',qty:300,unit:'g',dept:'dairy'},{name:'Gruyere',qty:100,unit:'g',dept:'dairy'},{name:'Whole milk',qty:400,unit:'ml',dept:'dairy'},{name:'Sodium citrate',qty:1,unit:'tsp',dept:'condiments'},{name:'Dijon mustard',qty:1,unit:'tsp',dept:'condiments'}]},
+  {id:'i23',name:'Nashville Hot Chicken',src:'Bon Appetit',cui:'Comfort',tm:'60 min',dif:'Medium',hot:true,dsc:'Buttermilk-fried chicken dunked in a cayenne paste that will clear your sinuses and steal your heart.',tgs:['comfort','fancy'],ing:[{name:'Chicken thighs',qty:1000,unit:'g',dept:'meat'},{name:'Buttermilk',qty:500,unit:'ml',dept:'dairy'},{name:'Flour',qty:300,unit:'g',dept:'pantry'},{name:'Cayenne pepper',qty:3,unit:'tbsp',dept:'condiments'},{name:'Brown sugar',qty:1,unit:'tbsp',dept:'pantry'},{name:'Lard or butter',qty:80,unit:'g',dept:'dairy'}]},
+  {id:'i24',name:'French Dip Sandwich',src:'Serious Eats',cui:'Comfort',tm:'3 hrs',dif:'Weekend',hot:false,dsc:'Slow-roasted beef piled onto a crusty roll and dipped in rich au jus. A Sunday project everyone loves.',tgs:['comfort','fancy'],ing:[{name:'Beef chuck roast',qty:1500,unit:'g',dept:'meat'},{name:'Beef broth',qty:1000,unit:'ml',dept:'pantry'},{name:'Hoagie rolls',qty:4,unit:'piece(s)',dept:'bakery'},{name:'Provolone',qty:200,unit:'g',dept:'dairy'},{name:'Onion',qty:2,unit:'piece(s)',dept:'produce'},{name:'Garlic cloves',qty:6,unit:'piece(s)',dept:'produce'}]},
+  {id:'i25',name:'Chicken Pot Pie',src:'NYT Cooking',cui:'Comfort',tm:'90 min',dif:'Medium',hot:false,dsc:'A buttery flaky-topped pie filled with chicken and vegetables in a rich cream sauce. Ultimate cold-weather comfort.',tgs:['comfort','fancy'],ing:[{name:'Chicken breast',qty:600,unit:'g',dept:'meat'},{name:'Pie dough',qty:1,unit:'package',dept:'frozen'},{name:'Carrots',qty:2,unit:'piece(s)',dept:'produce'},{name:'Frozen peas',qty:200,unit:'g',dept:'frozen'},{name:'Butter',qty:60,unit:'g',dept:'dairy'},{name:'Flour',qty:60,unit:'g',dept:'pantry'},{name:'Chicken broth',qty:500,unit:'ml',dept:'pantry'},{name:'Heavy cream',qty:100,unit:'ml',dept:'dairy'}]},
+  {id:'i26',name:'Tonkotsu Ramen (simplified)',src:'Serious Eats',cui:'Japanese',tm:'4 hrs',dif:'Weekend',hot:false,dsc:'Rich pork bone broth, springy noodles, chashu pork, and a soft egg. A weekend labour of love.',tgs:['fancy','comfort'],ing:[{name:'Pork trotters',qty:1000,unit:'g',dept:'meat'},{name:'Pork belly',qty:600,unit:'g',dept:'meat'},{name:'Ramen noodles',qty:400,unit:'g',dept:'pantry'},{name:'Soy sauce',qty:4,unit:'tbsp',dept:'condiments'},{name:'Mirin',qty:3,unit:'tbsp',dept:'condiments'},{name:'Eggs',qty:4,unit:'piece(s)',dept:'dairy'},{name:'Garlic cloves',qty:6,unit:'piece(s)',dept:'produce'}]},
+  {id:'i27',name:'Chicken Katsu Curry',src:'NYT Cooking',cui:'Japanese',tm:'50 min',dif:'Medium',hot:false,dsc:'Japanese curry sauce - sweet, mild, deeply savoury - poured over crispy panko chicken.',tgs:['comfort'],ing:[{name:'Chicken breast',qty:600,unit:'g',dept:'meat'},{name:'Panko breadcrumbs',qty:150,unit:'g',dept:'pantry'},{name:'Eggs',qty:2,unit:'piece(s)',dept:'dairy'},{name:'Japanese curry roux blocks',qty:100,unit:'g',dept:'pantry'},{name:'Onion',qty:1,unit:'piece(s)',dept:'produce'},{name:'Carrots',qty:2,unit:'piece(s)',dept:'produce'},{name:'Potato',qty:2,unit:'piece(s)',dept:'produce'},{name:'Rice',qty:300,unit:'g',dept:'pantry'}]},
+  {id:'i28',name:'Gyudon Beef Rice Bowl',src:'Serious Eats',cui:'Japanese',tm:'25 min',dif:'Easy',hot:false,dsc:'Thinly sliced beef and onion simmered in a dashi-soy broth over rice. A Japanese weeknight staple.',tgs:['quick','easy'],ing:[{name:'Thinly sliced beef',qty:400,unit:'g',dept:'meat'},{name:'Onion',qty:2,unit:'piece(s)',dept:'produce'},{name:'Soy sauce',qty:3,unit:'tbsp',dept:'condiments'},{name:'Mirin',qty:3,unit:'tbsp',dept:'condiments'},{name:'Dashi stock',qty:150,unit:'ml',dept:'pantry'},{name:'Rice',qty:300,unit:'g',dept:'pantry'},{name:'Eggs',qty:4,unit:'piece(s)',dept:'dairy'}]},
+  {id:'i29',name:'Karaage Japanese Fried Chicken',src:'The Food Lab',cui:'Japanese',tm:'40 min',dif:'Easy',hot:false,dsc:'Double-fried super-juicy chicken thighs marinated in ginger and soy. Crispier than any fried chicken.',tgs:['easy','fancy'],ing:[{name:'Chicken thighs',qty:800,unit:'g',dept:'meat'},{name:'Soy sauce',qty:3,unit:'tbsp',dept:'condiments'},{name:'Mirin',qty:2,unit:'tbsp',dept:'condiments'},{name:'Ginger',qty:2,unit:'tbsp',dept:'condiments'},{name:'Garlic cloves',qty:3,unit:'piece(s)',dept:'produce'},{name:'Potato starch',qty:4,unit:'tbsp',dept:'pantry'},{name:'Lemon',qty:2,unit:'piece(s)',dept:'produce'}]},
+  {id:'i30',name:'Butter Chicken',src:'Serious Eats',cui:'Indian',tm:'60 min',dif:'Medium',hot:true,dsc:'Tandoor-spiced chicken in a lush buttery tomato sauce. One of the most beloved dishes on earth.',tgs:['comfort'],ing:[{name:'Chicken thighs',qty:800,unit:'g',dept:'meat'},{name:'Crushed tomatoes',qty:400,unit:'g',dept:'pantry'},{name:'Heavy cream',qty:150,unit:'ml',dept:'dairy'},{name:'Butter',qty:80,unit:'g',dept:'dairy'},{name:'Garlic cloves',qty:6,unit:'piece(s)',dept:'produce'},{name:'Ginger',qty:2,unit:'tbsp',dept:'condiments'},{name:'Garam masala',qty:2,unit:'tsp',dept:'condiments'},{name:'Yogurt',qty:150,unit:'ml',dept:'dairy'}]},
+  {id:'i31',name:'Lamb Rogan Josh',src:'NYT Cooking',cui:'Indian',tm:'90 min',dif:'Medium',hot:true,dsc:'Kashmiri braised lamb in a rich aromatic sauce - deep red, warmly spiced, stunning over rice.',tgs:['fancy','comfort'],ing:[{name:'Lamb shoulder',qty:1000,unit:'g',dept:'meat'},{name:'Yogurt',qty:200,unit:'ml',dept:'dairy'},{name:'Kashmiri chili powder',qty:2,unit:'tsp',dept:'condiments'},{name:'Garam masala',qty:2,unit:'tsp',dept:'condiments'},{name:'Onion',qty:2,unit:'piece(s)',dept:'produce'},{name:'Garlic cloves',qty:6,unit:'piece(s)',dept:'produce'}]},
+  {id:'i32',name:'Saag Paneer',src:'Serious Eats',cui:'Indian',tm:'45 min',dif:'Easy',hot:true,dsc:'Creamy spiced spinach with fresh paneer. Vegetarian, satisfying, and endlessly versatile.',tgs:['vegetarian','easy'],ing:[{name:'Paneer',qty:400,unit:'g',dept:'dairy'},{name:'Spinach',qty:600,unit:'g',dept:'produce'},{name:'Onion',qty:1,unit:'piece(s)',dept:'produce'},{name:'Garlic cloves',qty:4,unit:'piece(s)',dept:'produce'},{name:'Ginger',qty:1,unit:'tbsp',dept:'condiments'},{name:'Heavy cream',qty:100,unit:'ml',dept:'dairy'},{name:'Garam masala',qty:1,unit:'tsp',dept:'condiments'}]},
+  {id:'i33',name:'Chicken Tikka Masala',src:'The Food Lab',cui:'Indian',tm:'60 min',dif:'Medium',hot:true,dsc:'Charred yogurt-marinated chicken in a silky tomato-cream sauce. Technically British-Indian, universally adored.',tgs:['comfort','fancy'],ing:[{name:'Chicken thighs',qty:800,unit:'g',dept:'meat'},{name:'Yogurt',qty:200,unit:'ml',dept:'dairy'},{name:'Crushed tomatoes',qty:400,unit:'g',dept:'pantry'},{name:'Heavy cream',qty:150,unit:'ml',dept:'dairy'},{name:'Garlic cloves',qty:6,unit:'piece(s)',dept:'produce'},{name:'Garam masala',qty:2,unit:'tsp',dept:'condiments'},{name:'Butter',qty:40,unit:'g',dept:'dairy'}]},
+  {id:'i34',name:'Sheet Pan Gochujang Chicken',src:'Bon Appetit',cui:'Asian',tm:'45 min',dif:'Easy',hot:true,dsc:'Gochujang-glazed chicken thighs roasted with vegetables. Sticky, spicy, sweet - one pan, easy cleanup.',tgs:['easy','quick'],ing:[{name:'Chicken thighs',qty:800,unit:'g',dept:'meat'},{name:'Gochujang paste',qty:3,unit:'tbsp',dept:'condiments'},{name:'Soy sauce',qty:2,unit:'tbsp',dept:'condiments'},{name:'Brown sugar',qty:2,unit:'tbsp',dept:'pantry'},{name:'Rice vinegar',qty:1,unit:'tbsp',dept:'condiments'},{name:'Garlic cloves',qty:4,unit:'piece(s)',dept:'produce'},{name:'Sweet potatoes',qty:400,unit:'g',dept:'produce'},{name:'Broccoli',qty:300,unit:'g',dept:'produce'}]},
+  {id:'i35',name:'Skillet Pork Chops with Pan Sauce',src:'Serious Eats',cui:'Comfort',tm:'30 min',dif:'Easy',hot:false,dsc:'Thick perfectly seared pork chops with a quick pan sauce of shallots, white wine, and butter.',tgs:['easy','fancy'],ing:[{name:'Thick-cut pork chops',qty:800,unit:'g',dept:'meat'},{name:'Shallots',qty:3,unit:'piece(s)',dept:'produce'},{name:'White wine',qty:100,unit:'ml',dept:'other'},{name:'Chicken broth',qty:100,unit:'ml',dept:'pantry'},{name:'Butter',qty:40,unit:'g',dept:'dairy'},{name:'Thyme',qty:4,unit:'piece(s)',dept:'produce'},{name:'Garlic cloves',qty:3,unit:'piece(s)',dept:'produce'}]},
+  {id:'i36',name:'Shakshuka',src:'NYT Cooking',cui:'Indian',tm:'30 min',dif:'Easy',hot:true,dsc:'Eggs poached in a spiced tomato-pepper sauce. Breakfast or dinner - it is always right.',tgs:['vegetarian','easy','quick'],ing:[{name:'Eggs',qty:6,unit:'piece(s)',dept:'dairy'},{name:'Crushed tomatoes',qty:800,unit:'g',dept:'pantry'},{name:'Red bell pepper',qty:2,unit:'piece(s)',dept:'produce'},{name:'Onion',qty:1,unit:'piece(s)',dept:'produce'},{name:'Garlic cloves',qty:4,unit:'piece(s)',dept:'produce'},{name:'Cumin',qty:1,unit:'tsp',dept:'condiments'},{name:'Chili flakes',qty:1,unit:'tsp',dept:'condiments'},{name:'Feta cheese',qty:100,unit:'g',dept:'dairy'}]},
+  {id:'i37',name:'Salmon en Papillote',src:'Julia Child',cui:'French',tm:'30 min',dif:'Easy',hot:false,dsc:'Salmon steamed in parchment with herbs, lemon, and white wine. Foolproof, elegant, zero dishes.',tgs:['easy','fancy'],ing:[{name:'Salmon fillets',qty:600,unit:'g',dept:'meat'},{name:'Lemon',qty:2,unit:'piece(s)',dept:'produce'},{name:'White wine',qty:60,unit:'ml',dept:'other'},{name:'Butter',qty:40,unit:'g',dept:'dairy'},{name:'Dill',qty:1,unit:'bunch',dept:'produce'},{name:'Shallots',qty:2,unit:'piece(s)',dept:'produce'},{name:'Capers',qty:2,unit:'tbsp',dept:'condiments'}]},
+  {id:'i38',name:'Lamb Chops with Salsa Verde',src:'Bon Appetit',cui:'French',tm:'35 min',dif:'Easy',hot:false,dsc:'Pan-seared lamb chops with a bright herby salsa verde. Restaurant quality in 35 minutes.',tgs:['fancy','easy'],ing:[{name:'Lamb shoulder chops',qty:800,unit:'g',dept:'meat'},{name:'Parsley',qty:1,unit:'bunch',dept:'produce'},{name:'Mint',qty:1,unit:'bunch',dept:'produce'},{name:'Capers',qty:2,unit:'tbsp',dept:'condiments'},{name:'Garlic cloves',qty:2,unit:'piece(s)',dept:'produce'},{name:'Red wine vinegar',qty:2,unit:'tbsp',dept:'condiments'},{name:'Olive oil',qty:4,unit:'tbsp',dept:'condiments'}]},
+  {id:'i39',name:'Miso Glazed Cod',src:'Bon Appetit',cui:'Japanese',tm:'20 min',dif:'Easy',hot:false,dsc:'Broiled cod with a sweet white miso glaze - caramelised, flaky, and ready in 20 minutes.',tgs:['quick','easy','fancy'],ing:[{name:'Cod fillets',qty:600,unit:'g',dept:'meat'},{name:'White miso paste',qty:4,unit:'tbsp',dept:'condiments'},{name:'Mirin',qty:3,unit:'tbsp',dept:'condiments'},{name:'Sugar',qty:2,unit:'tbsp',dept:'pantry'},{name:'Rice',qty:300,unit:'g',dept:'pantry'}]},
+  {id:'i40',name:'Coq au Vin',src:'Julia Child',cui:'French',tm:'2 hrs',dif:'Weekend',hot:false,dsc:'Chicken slowly braised in red wine with mushrooms, bacon, and pearl onions. The French farmhouse dish that never gets old.',tgs:['comfort','fancy'],ing:[{name:'Whole chicken pieces',qty:1500,unit:'g',dept:'meat'},{name:'Red wine',qty:750,unit:'ml',dept:'other'},{name:'Bacon lardons',qty:150,unit:'g',dept:'meat'},{name:'Mushrooms',qty:300,unit:'g',dept:'produce'},{name:'Pearl onions',qty:200,unit:'g',dept:'produce'},{name:'Chicken broth',qty:300,unit:'ml',dept:'pantry'},{name:'Garlic cloves',qty:4,unit:'piece(s)',dept:'produce'},{name:'Tomato paste',qty:1,unit:'tbsp',dept:'condiments'}]},
+];
+
+function openInspireModal(){
+  inspireFilterActive='all';
+  document.querySelectorAll('#inspire-filters .chip').forEach(c=>{
+    const isAll=c.dataset.ifilter==='all';
+    c.classList.toggle('active',isAll);
+    c.style.background=isAll?'var(--accent)':'';
+    c.style.color=isAll?'#fff':'';
+    c.style.borderColor=isAll?'var(--accent)':'';
+  });
+  document.getElementById('inspire-search').value='';
+  renderInspireGrid();
+  openModal('modal-inspire');
+}
+
+function setInspireFilter(filter,el){
+  inspireFilterActive=filter;
+  document.querySelectorAll('#inspire-filters .chip').forEach(c=>{c.classList.remove('active');c.style.background='';c.style.color='';c.style.borderColor='';});
+  el.classList.add('active');el.style.background='var(--accent)';el.style.color='#fff';el.style.borderColor='var(--accent)';
+  renderInspireGrid();
+}
+
+function renderInspireGrid(){
+  const q=(document.getElementById('inspire-search')?.value||'').toLowerCase();
+  const addedIds=JSON.parse(localStorage.getItem('cn-inspire-added')||'[]');
+  const dismissed=JSON.parse(localStorage.getItem('cn-inspire-dismissed')||'[]');
+  const inLib=new Set(Object.values(recipes).map(r=>r.name));
+  let list=IR.filter(r=>{
+    if(dismissed.includes(r.id))return false;
+    if(inspireFilterActive==='Quick')return r.tm.includes('min')&&parseInt(r.tm)<=45;
+    if(inspireFilterActive!=='all'&&r.cui!==inspireFilterActive)return false;
+    if(q)return r.name.toLowerCase().includes(q)||r.cui.toLowerCase().includes(q)||r.dsc.toLowerCase().includes(q);
+    return true;
+  });
+  const grid=document.getElementById('inspire-grid');
+  if(!list.length){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--text3)"><p>No recipes match - try a different filter!</p></div>';return;}
+  grid.innerHTML=list.map(r=>{
+    const isAdded=addedIds.includes(r.id)||inLib.has(r.name);
+    return '<div class="inspire-card'+(isAdded?' added':'')+'">'+
+      '<div class="inspire-card-source">'+esc(r.src)+'</div>'+
+      '<div class="inspire-card-name">'+esc(r.name)+'</div>'+
+      '<div class="inspire-card-desc">'+esc(r.dsc)+'</div>'+
+      '<div class="inspire-card-meta">'+
+        '<span class="inspire-pill time">'+r.tm+'</span>'+
+        '<span class="inspire-pill cuisine">'+r.cui+'</span>'+
+        '<span class="inspire-pill diff">'+r.dif+'</span>'+
+        (r.hot?'<span class="inspire-pill" style="background:var(--red-bg);color:var(--red)">Spicy</span>':'')+
+      '</div>'+
+      '<div class="inspire-card-actions">'+
+        (isAdded
+          ?'<span class="inspire-added-badge">Already in your recipes</span>'
+          :'<button class="btn btn-primary btn-sm" onclick="addIR(''+r.id+'')">+ Add to my recipes</button>'+
+           '<button class="btn btn-secondary btn-sm" onclick="dismissIR(''+r.id+'')">Not for us</button>')+
+      '</div></div>';
+  }).join('');
+}
+
+function addIR(id){
+  const r=IR.find(x=>x.id===id);if(!r)return;
+  const newId=Date.now().toString();
+  fbSet('recipes/'+newId,{id:newId,name:r.name,portions:4,defaultPortions:4,time:r.tm,source:r.src,steps:'',ingredients:r.ing,tags:r.tgs||[],customTags:['Want to try'],lastCooked:null,rating:0});
+  const a=JSON.parse(localStorage.getItem('cn-inspire-added')||'[]');
+  if(!a.includes(id))a.push(id);
+  localStorage.setItem('cn-inspire-added',JSON.stringify(a));
+  renderInspireGrid();
+}
+
+function dismissIR(id){
+  const d=JSON.parse(localStorage.getItem('cn-inspire-dismissed')||'[]');
+  if(!d.includes(id))d.push(id);
+  localStorage.setItem('cn-inspire-dismissed',JSON.stringify(d));
+  renderInspireGrid();
+}
 
 </script>
 
