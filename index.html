@@ -28,7 +28,7 @@ if('serviceWorker' in navigator){
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
   --bg:#0f0e17;--surface:#1a1828;--surface2:#231f35;--surface3:#2d2845;
   --border:#3a3555;--border2:#4a4468;
@@ -137,11 +137,6 @@ main{max-width:1140px;margin:0 auto;padding:32px 24px}
 .last-cooked{font-size:.7rem;color:var(--text3);margin-bottom:6px;font-style:italic}
 .last-cooked.recent{color:var(--mint)}
 /* STAR RATING */
-.stars-row{display:flex;align-items:center;gap:4px;margin-bottom:8px}
-.star{font-size:1rem;cursor:pointer;transition:transform .15s;color:var(--text3);line-height:1}
-.star.lit{color:var(--yellow)}
-.star:hover{transform:scale(1.25)}
-.rating-label{font-size:.7rem;color:var(--text3);margin-left:4px}
 .recipe-actions{display:none}
 
 /* EMPTY STATE */
@@ -279,12 +274,6 @@ main{max-width:1140px;margin:0 auto;padding:32px 24px}
 .step-num{width:26px;height:26px;border-radius:8px;background:var(--accent);color:#fff;font-size:.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
 .step-text{font-size:.86rem;line-height:1.68;color:var(--text2)}
 
-/* RATE MODAL */
-.rate-stars{display:flex;gap:10px;justify-content:center;padding:16px 0}
-.rate-star{font-size:2rem;cursor:pointer;transition:transform .15s;color:var(--text3)}
-.rate-star.lit{color:var(--yellow)}
-.rate-star:hover{transform:scale(1.3)}
-
 /* GROCERY */
 .grocery-banner{background:linear-gradient(135deg,var(--accent-bg),var(--mint-bg));border:1px solid var(--border2);border-radius:var(--r-lg);padding:16px 20px;margin-bottom:24px;font-size:.86rem;color:var(--text2);line-height:1.8}
 .grocery-banner strong{color:var(--text)}
@@ -368,6 +357,13 @@ main{max-width:1140px;margin:0 auto;padding:32px 24px}
 .overflow-menu.open{display:block}
 .overflow-menu-item{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;font-size:.84rem;color:var(--text2);cursor:pointer;transition:all .18s;border:none;background:none;width:100%;text-align:left;font-family:'DM Sans',sans-serif}
 .overflow-menu-item:hover{background:var(--surface2);color:var(--text)}
+
+
+/* FAVOURITE */
+.fav-btn{background:none;border:none;font-size:1.1rem;cursor:pointer;padding:4px 8px;border-radius:8px;transition:transform .2s;line-height:1;color:var(--text3)}
+.fav-btn:hover{transform:scale(1.2)}
+.fav-btn.active{color:var(--red)}
+.fav-indicator{font-size:.85rem;line-height:1;position:absolute;top:12px;left:14px}
 
 /* WANT TO COOK */
 .wtc-add-form{background:var(--surface2);border-radius:var(--r-lg);border:1px solid var(--border);padding:18px;margin-bottom:20px}
@@ -523,6 +519,7 @@ main{max-width:1140px;margin:0 auto;padding:32px 24px}
         <input class="search-input" id="recipe-search" type="text" placeholder="Search by name, source, or tag…" oninput="renderRecipes()">
       </div>
       <div class="filter-chips">
+        <span class="chip" data-tag="__fav__" onclick="toggleFilter(this)">❤️ Favourites</span>
         <span class="chip" data-tag="quick" onclick="toggleFilter(this)">⚡ Quick</span>
         <span class="chip" data-tag="vegetarian" onclick="toggleFilter(this)">🥦 Veg</span>
         <span class="chip" data-tag="comfort" onclick="toggleFilter(this)">🍲 Comfort</span>
@@ -764,27 +761,6 @@ main{max-width:1140px;margin:0 auto;padding:32px 24px}
   </div>
 </div>
 
-<!-- RATE MODAL -->
-<div class="modal-overlay" id="modal-rate">
-  <div class="modal" style="max-width:380px;text-align:center">
-    <div class="modal-header" style="justify-content:center;margin-bottom:8px">
-      <h2>Rate this meal</h2>
-    </div>
-    <p id="rate-recipe-name" style="color:var(--text3);font-size:.88rem;margin-bottom:4px"></p>
-    <div class="rate-stars" id="rate-stars">
-      <span class="rate-star" data-v="1" onclick="setRating(1)">★</span>
-      <span class="rate-star" data-v="2" onclick="setRating(2)">★</span>
-      <span class="rate-star" data-v="3" onclick="setRating(3)">★</span>
-      <span class="rate-star" data-v="4" onclick="setRating(4)">★</span>
-      <span class="rate-star" data-v="5" onclick="setRating(5)">★</span>
-    </div>
-    <p id="rate-hint" style="font-size:.8rem;color:var(--text3);height:18px;margin-bottom:16px"></p>
-    <div class="modal-footer" style="justify-content:center;border-top:none;padding-top:0;margin-top:0">
-      <button class="btn btn-secondary" onclick="closeModal('modal-rate')">Skip</button>
-      <button class="btn btn-primary" onclick="confirmRating()">Save Rating</button>
-    </div>
-  </div>
-</div>
 
 <script>
 // ── Firebase ───────────────────────────────────────────────────────────────
@@ -821,7 +797,6 @@ function deptName(deptId){
 const UNITS=['g','kg','ml','L','tsp','tbsp','cup','oz','lb','piece(s)','bunch','can','package','to taste'];
 const TAG_CSS={quick:'tag-quick',vegetarian:'tag-vegetarian',comfort:'tag-comfort',easy:'tag-easy',fancy:'tag-fancy'};
 const TAG_LBL={quick:'⚡ Quick',vegetarian:'🥦 Veg',comfort:'🍲 Comfort',easy:'😌 Easy',fancy:'✨ Fancy'};
-const RATE_HINTS=['😬 Not great','🙂 It was okay','😊 Pretty good','😍 Really good!','🤩 Absolutely amazing!'];
 
 // ── State ──────────────────────────────────────────────────────────────────
 let recipes={},weekPlan={},checkedItems=[],manualItems=[],weekHistory={};
@@ -869,7 +844,12 @@ document.addEventListener('keydown',e=>{
 });
 
 // ── Filters ────────────────────────────────────────────────────────────────
-function toggleFilter(el){const t=el.dataset.tag;activeFilters.has(t)?activeFilters.delete(t):activeFilters.add(t);el.classList.toggle('active',activeFilters.has(t));renderRecipes();}
+function toggleFilter(el){
+  const t=el.dataset.tag;
+  activeFilters.has(t)?activeFilters.delete(t):activeFilters.add(t);
+  el.classList.toggle('active',activeFilters.has(t));
+  renderRecipes();
+}
 
 // ── Ingredient autocomplete ────────────────────────────────────────────────
 function getKnownIngredients(){
@@ -915,8 +895,11 @@ function renderRecipes(){
   const all=Object.values(recipes);
   const list=all.filter(r=>{
     const mq=!q||r.name.toLowerCase().includes(q)||(r.source||'').toLowerCase().includes(q)||(r.customTags||[]).some(t=>t.toLowerCase().includes(q));
-    const mt=!activeFilters.size||(r.tags||[]).some(t=>activeFilters.has(t));
-    return mq&&mt;
+    const favFilter=activeFilters.has('__fav__');
+    const otherFilters=new Set([...activeFilters].filter(f=>f!=='__fav__'));
+    const mfav=!favFilter||!!r.favourite;
+    const mt=!otherFilters.size||(r.tags||[]).some(t=>otherFilters.has(t));
+    return mq&&mfav&&mt;
   });
   const grid=document.getElementById('recipe-grid');
   if(!all.length){grid.innerHTML=`<div class="empty-state"><div class="empty-icon">🍽</div><h3>No recipes yet</h3><p>Hit "+ Add Recipe" to start building your collection!</p></div>`;return;}
@@ -926,10 +909,10 @@ function renderRecipes(){
     const lc=ds===null?null:ds===0?'Cooked today':ds===1?'Cooked yesterday':`Cooked ${ds}d ago`;
     const recent=ds!==null&&ds<=7;
     const tags=[...(r.tags||[]).map(t=>`<span class="tag ${TAG_CSS[t]||''}">${TAG_LBL[t]||t}</span>`),(r.customTags||[]).map(t=>`<span class="tag" style="background:var(--violet-bg);color:var(--violet)">${esc(t)}</span>`)].flat().join('');
-    const rating=r.rating||0;
-    const starsHtml=`<div class="stars-row">${[1,2,3,4,5].map(i=>`<span class="star${i<=rating?' lit':''}" data-recipe-id="${r.id}">★</span>`).join('')}<span class="rating-label">${rating?RATE_HINTS[rating-1]:'Not rated yet'}</span></div>`;
+    const isFav=!!r.favourite;
     return `<div class="recipe-card" data-recipe-id="${r.id}">
       <button class="recipe-card-menu-btn" data-recipe-id="${r.id}" title="More options">⋯</button>
+      ${isFav?'<span class="fav-indicator">❤️</span>':''}
       <div class="recipe-name" style="padding-right:32px">${esc(r.name)}</div>
       <div class="recipe-meta">
         <span>👥 ${r.portions}p</span>${r.time?`<span>⏱ ${esc(r.time)}</span>`:''}
@@ -937,7 +920,6 @@ function renderRecipes(){
       </div>
       ${r.source?`<div class="recipe-source">📖 ${isURL(r.source)?`<a href="${esc(r.source)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${esc(r.source)}</a>`:esc(r.source)}</div>`:''}
       ${tags?`<div class="tag-row">${tags}</div>`:''}
-      ${starsHtml}
       ${lc?`<div class="last-cooked${recent?' recent':''}">${recent?'✅ ':''} ${lc}</div>`:''}
     </div>`;
   }).join('');
@@ -1027,7 +1009,7 @@ function saveRecipe(){
   });
   const id=editingId||Date.now().toString();
   const ex=editingId?recipes[editingId]:{};
-  fbSet('recipes/'+id,{...ex,id,name,portions,defaultPortions,time,source,steps,ingredients,tags,customTags,lastCooked:ex.lastCooked||null,rating:ex.rating||0});
+  fbSet('recipes/'+id,{...ex,id,name,portions,defaultPortions,time,source,steps,ingredients,tags,customTags,lastCooked:ex.lastCooked||null,favourite:ex.favourite||false});
   closeModal('modal-recipe');
 }
 
@@ -1045,13 +1027,14 @@ function viewRecipe(id){
   const r=recipes[id];if(!r)return;
   const steps=r.steps?r.steps.split('\n').filter(s=>s.trim()):[];
   const tags=[...(r.tags||[]).map(t=>`<span class="tag ${TAG_CSS[t]||''}">${TAG_LBL[t]||t}</span>`),(r.customTags||[]).map(t=>`<span class="tag" style="background:var(--violet-bg);color:var(--violet)">${esc(t)}</span>`)].flat().join('');
-  const rating=r.rating||0;
   document.getElementById('modal-detail-content').innerHTML=`
-    <h2 style="font-size:1.4rem;margin-bottom:12px;letter-spacing:-.02em">${esc(r.name)}</h2>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px">
+      <h2 style="font-size:1.4rem;letter-spacing:-.02em;flex:1">${esc(r.name)}</h2>
+      <button class="fav-btn${r.favourite?' active':''}" onclick="toggleFavourite('${r.id}',this)" title="${r.favourite?'Remove from favourites':'Add to favourites'}">${r.favourite?'❤️':'🤍'}</button>
+    </div>
     <div class="detail-meta">
       <span class="detail-badge">👥 ${r.portions} portions</span>
       ${r.time?`<span class="detail-badge">⏱ ${esc(r.time)}</span>`:''}
-      ${rating?`<span class="detail-badge">${'★'.repeat(rating)}${'☆'.repeat(5-rating)} ${RATE_HINTS[rating-1]}</span>`:''}
       ${tags}
     </div>
     ${r.source?`<p style="margin-bottom:14px;font-size:.83rem;color:var(--text3)">📖 ${isURL(r.source)?`<a href="${esc(r.source)}" target="_blank" rel="noopener" style="color:var(--accent)">${esc(r.source)}</a>`:esc(r.source)}</p>`:''}
@@ -1064,22 +1047,6 @@ function viewRecipe(id){
   openModal('modal-detail');
 }
 
-// ── Ratings ────────────────────────────────────────────────────────────────
-function openRateModal(id,e){
-  e.stopPropagation();
-  ratingRecipeId=id;pendingRating=recipes[id]?.rating||0;
-  document.getElementById('rate-recipe-name').textContent=recipes[id]?.name||'';
-  renderRateStars(pendingRating);
-  document.getElementById('rate-hint').textContent=pendingRating?RATE_HINTS[pendingRating-1]:'';
-  openModal('modal-rate');
-}
-function renderRateStars(v){document.querySelectorAll('.rate-star').forEach((s,i)=>{s.classList.toggle('lit',i<v);});}
-function setRating(v){pendingRating=v;renderRateStars(v);document.getElementById('rate-hint').textContent=RATE_HINTS[v-1];}
-document.querySelectorAll('.rate-star').forEach(s=>{
-  s.addEventListener('mouseover',()=>renderRateStars(parseInt(s.dataset.v)));
-  s.addEventListener('mouseleave',()=>renderRateStars(pendingRating));
-});
-function confirmRating(){if(!ratingRecipeId||!pendingRating)return;fbSet('recipes/'+ratingRecipeId+'/rating',pendingRating);closeModal('modal-rate');}
 
 // ── Planner ────────────────────────────────────────────────────────────────
 function getWeekLabel(){
@@ -1163,8 +1130,9 @@ function getDayMeals(day){
 function fillLucky(){
   const list=Object.values(recipes);if(!list.length){alert('Add some recipes first!');return;}
   // bias toward higher-rated recipes
+  // Favour favourited recipes (appear 3x more likely)
   const weighted=[];
-  list.forEach(r=>{const w=r.rating||1;for(let i=0;i<w;i++)weighted.push(r);});
+  list.forEach(r=>{const w=r.favourite?3:1;for(let i=0;i<w;i++)weighted.push(r);});
   const update={};
   DAYS.forEach(day=>{const r=weighted[Math.floor(Math.random()*weighted.length)];update[day]={meals:[{recipeId:r.id,portions:r.defaultPortions||r.portions}],leftovers:false,note:''};});
   fbSet('weekPlan',update);
@@ -1461,10 +1429,10 @@ document.querySelector('#view-planner .section-header').insertAdjacentHTML('befo
 db.ref('recipes').once('value',snap=>{
   if(snap.val())return;
   fbSet('recipes',{
-    '1':{id:'1',name:'Spaghetti Bolognese',portions:4,defaultPortions:4,time:'60 min',source:'Family recipe',tags:['comfort'],customTags:[],lastCooked:null,rating:5,
+    '1':{id:'1',name:'Spaghetti Bolognese',portions:4,defaultPortions:4,time:'60 min',source:'Family recipe',tags:['comfort'],customTags:[],lastCooked:null,favourite:false,
       steps:'Brown the ground beef in a hot pan with oil.\nAdd onions and garlic, cook 5 minutes.\nAdd crushed tomatoes, tomato paste, and herbs. Simmer 30 min.\nCook pasta al dente, combine and serve with parmesan.',
       ingredients:[{name:'Ground beef',qty:500,unit:'g',dept:'meat'},{name:'Spaghetti',qty:400,unit:'g',dept:'pantry'},{name:'Crushed tomatoes',qty:800,unit:'g',dept:'pantry'},{name:'Onion',qty:2,unit:'piece(s)',dept:'produce'},{name:'Garlic cloves',qty:4,unit:'piece(s)',dept:'produce'},{name:'Tomato paste',qty:2,unit:'tbsp',dept:'condiments'},{name:'Parmesan',qty:80,unit:'g',dept:'dairy'},{name:'Olive oil',qty:2,unit:'tbsp',dept:'condiments'}]},
-    '2':{id:'2',name:'Chicken Stir-Fry',portions:4,defaultPortions:4,time:'25 min',source:'',tags:['quick','easy'],customTags:['Asian'],lastCooked:null,rating:4,
+    '2':{id:'2',name:'Chicken Stir-Fry',portions:4,defaultPortions:4,time:'25 min',source:'',tags:['quick','easy'],customTags:['Asian'],lastCooked:null,favourite:false,
       steps:'Cut chicken into strips and season.\nStir-fry on high heat 5 minutes.\nAdd vegetables, cook 4 more minutes.\nAdd soy sauce and sesame oil, toss and serve with rice.',
       ingredients:[{name:'Chicken breast',qty:600,unit:'g',dept:'meat'},{name:'Broccoli',qty:1,unit:'piece(s)',dept:'produce'},{name:'Bell pepper',qty:2,unit:'piece(s)',dept:'produce'},{name:'Soy sauce',qty:3,unit:'tbsp',dept:'condiments'},{name:'Garlic cloves',qty:3,unit:'piece(s)',dept:'produce'},{name:'Ginger',qty:1,unit:'tsp',dept:'condiments'},{name:'Rice',qty:300,unit:'g',dept:'pantry'},{name:'Sesame oil',qty:1,unit:'tbsp',dept:'condiments'}]},
   });
@@ -2019,12 +1987,8 @@ document.addEventListener('click',function(){closeOverflowMenu();});
 function handleCardClick(e, id){
   if(e.target.closest('.recipe-card-menu-btn')||
      e.target.closest('.recipe-card-menu')||
+     e.target.classList.contains('fav-btn')||
      e.target.tagName==='A') return;
-  // If a star was tapped directly, open rate modal instead
-  if(e.target.classList.contains('star')){
-    openRateModal(id, e);
-    return;
-  }
   viewRecipe(id);
 }
 
@@ -2047,22 +2011,34 @@ function attachCardListeners(){
       if(!e.isTrusted||window.matchMedia('(hover:none)').matches)return;
       handleCardClick(e,id);
     });
-    // Menu button
+    // Menu button — proper touch + toggle
     const menuBtn=fresh.querySelector('.recipe-card-menu-btn');
     if(menuBtn){
-      menuBtn.addEventListener('touchend',e=>{e.stopPropagation();openCardMenu(e,id,menuBtn);});
-      menuBtn.addEventListener('click',e=>{e.stopPropagation();openCardMenu(e,id,menuBtn);});
+      let menuTouchMoved=false;
+      menuBtn.addEventListener('touchstart',()=>{menuTouchMoved=false;},{passive:true});
+      menuBtn.addEventListener('touchmove',()=>{menuTouchMoved=true;},{passive:true});
+      menuBtn.addEventListener('touchend',e=>{
+        e.stopPropagation();
+        if(!menuTouchMoved)toggleCardMenu(e,id,menuBtn);
+      });
+      menuBtn.addEventListener('click',e=>{
+        e.stopPropagation();
+        if(!window.matchMedia('(hover:none)').matches)toggleCardMenu(e,id,menuBtn);
+      });
     }
   });
 }
 
 let activeCardMenu=null;
 
-function openCardMenu(e, id, btn){
+function toggleCardMenu(e, id, btn){
   e.stopPropagation();
-  // Close any open menu
-  document.querySelectorAll('.recipe-card-menu.open').forEach(m=>m.remove());
-  if(activeCardMenu===id){activeCardMenu=null;return;}
+  // If this menu is already open, close it
+  const existing=document.querySelector('.recipe-card-menu.open');
+  if(existing){
+    existing.remove();
+    if(activeCardMenu===id){activeCardMenu=null;return;}
+  }
   activeCardMenu=id;
   const menu=document.createElement('div');
   menu.className='recipe-card-menu open';
@@ -2101,6 +2077,19 @@ function openCardMenu(e, id, btn){
 function closeCardMenus(){
   document.querySelectorAll('.recipe-card-menu').forEach(m=>m.remove());
   activeCardMenu=null;
+}
+
+
+// ── Favourites ────────────────────────────────────────────────────────────
+function toggleFavourite(id, btn){
+  const r=recipes[id];if(!r)return;
+  const newVal=!r.favourite;
+  fbSet('recipes/'+id+'/favourite', newVal);
+  if(btn){
+    btn.textContent=newVal?'❤️':'🤍';
+    btn.classList.toggle('active', newVal);
+    btn.title=newVal?'Remove from favourites':'Add to favourites';
+  }
 }
 
 </script>
