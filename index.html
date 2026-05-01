@@ -927,7 +927,7 @@ function renderRecipes(){
     const recent=ds!==null&&ds<=7;
     const tags=[...(r.tags||[]).map(t=>`<span class="tag ${TAG_CSS[t]||''}">${TAG_LBL[t]||t}</span>`),(r.customTags||[]).map(t=>`<span class="tag" style="background:var(--violet-bg);color:var(--violet)">${esc(t)}</span>`)].flat().join('');
     const rating=r.rating||0;
-    const starsHtml=`<div class="stars-row" onclick="event.stopPropagation()">${[1,2,3,4,5].map(i=>`<span class="star${i<=rating?' lit':''}" onclick="openRateModal('${r.id}',event)">★</span>`).join('')}<span class="rating-label">${rating?RATE_HINTS[rating-1]:'Not rated yet'}</span></div>`;
+    const starsHtml=`<div class="stars-row">${[1,2,3,4,5].map(i=>`<span class="star${i<=rating?' lit':''}" data-recipe-id="${r.id}">★</span>`).join('')}<span class="rating-label">${rating?RATE_HINTS[rating-1]:'Not rated yet'}</span></div>`;
     return `<div class="recipe-card" data-recipe-id="${r.id}">
       <button class="recipe-card-menu-btn" data-recipe-id="${r.id}" title="More options">⋯</button>
       <div class="recipe-name" style="padding-right:32px">${esc(r.name)}</div>
@@ -2019,8 +2019,12 @@ document.addEventListener('click',function(){closeOverflowMenu();});
 function handleCardClick(e, id){
   if(e.target.closest('.recipe-card-menu-btn')||
      e.target.closest('.recipe-card-menu')||
-     e.target.closest('.stars-row')||
      e.target.tagName==='A') return;
+  // If a star was tapped directly, open rate modal instead
+  if(e.target.classList.contains('star')){
+    openRateModal(id, e);
+    return;
+  }
   viewRecipe(id);
 }
 
