@@ -312,12 +312,6 @@ main{max-width:1140px;margin:0 auto;padding:32px 24px}
 
 
 
-/* MOBILE GROCERY ACTION BAR */
-.grocery-action-bar{display:none;position:fixed;bottom:calc(60px + env(safe-area-inset-bottom,0px));left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:10px 16px;gap:8px;z-index:90;box-shadow:0 -4px 20px rgba(0,0,0,.2)}
-/* Only show on mobile AND only when on the grocery tab */
-@media(max-width:768px){.grocery-action-bar.active-tab{display:flex}}
-.grocery-action-bar .gab-left{display:flex;gap:8px;flex:1}
-.grocery-action-bar .gab-right{display:flex;gap:8px}
 
 
 
@@ -355,6 +349,14 @@ main{max-width:1140px;margin:0 auto;padding:32px 24px}
 .dept-select-opt.selected{border-color:var(--accent)}
 
 
+
+
+/* GROCERY OVERFLOW MENU */
+.overflow-menu-wrap{position:relative;display:inline-block}
+.overflow-menu{position:absolute;top:calc(100% + 6px);right:0;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);box-shadow:var(--shadow);z-index:9999;min-width:160px;padding:6px;display:none}
+.overflow-menu.open{display:block}
+.overflow-menu-item{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;font-size:.84rem;color:var(--text2);cursor:pointer;transition:all .18s;border:none;background:none;width:100%;text-align:left;font-family:'DM Sans',sans-serif}
+.overflow-menu-item:hover{background:var(--surface2);color:var(--text)}
 
 /* WANT TO COOK */
 .wtc-add-form{background:var(--surface2);border-radius:var(--r-lg);border:1px solid var(--border);padding:18px;margin-bottom:20px}
@@ -542,26 +544,20 @@ main{max-width:1140px;margin:0 auto;padding:32px 24px}
     <div class="section-header">
       <h2 class="section-title">Grocery <span class="hi">List</span></h2>
       <div class="btn-row">
-        <button class="btn btn-secondary btn-sm" onclick="uncheckAll()" id="btn-uncheck-all">Uncheck all</button>
+        <button class="btn btn-secondary btn-sm" onclick="uncheckAll()" id="btn-uncheck-all" style="display:none">Uncheck all</button>
         <button class="btn btn-danger btn-sm" onclick="clearChecked()" id="btn-clear-checked" style="display:none">🗑 Clear checked</button>
-        <button class="btn btn-mint btn-sm" onclick="exportText()">📤 Share as text</button>
-        <button class="btn btn-secondary btn-sm" onclick="window.print()">🖨 Print</button>
+        <div class="overflow-menu-wrap">
+          <button class="btn btn-secondary btn-sm" onclick="toggleOverflowMenu(event)" id="grocery-overflow-btn">⋯</button>
+          <div class="overflow-menu" id="grocery-overflow-menu">
+            <button class="overflow-menu-item" onclick="exportText();closeOverflowMenu()">📤 Share as text</button>
+            <button class="overflow-menu-item" onclick="window.print();closeOverflowMenu()">🖨 Print</button>
+          </div>
+        </div>
       </div>
     </div>
-    <div id="grocery-content"></div>
+    <div id="grocery-content" style="padding-bottom:24px"></div>
   </div>
 
-<!-- MOBILE GROCERY ACTION BAR -->
-<div class="grocery-action-bar" id="grocery-action-bar">
-  <div class="gab-left">
-    <button class="btn btn-secondary btn-sm" id="mob-uncheck-all" onclick="uncheckAll()" style="display:none">↺ Uncheck all</button>
-    <button class="btn btn-danger btn-sm" id="mob-clear-checked" onclick="clearChecked()" style="display:none">🗑 Clear checked</button>
-  </div>
-  <div class="gab-right">
-    <button class="btn btn-mint btn-sm" onclick="exportText()">📤 Share</button>
-    <button class="btn btn-secondary btn-sm" onclick="window.print()">🖨</button>
-  </div>
-</div>
 
 
   <!-- FRIDGE MODE -->
@@ -845,9 +841,7 @@ function showView(v,btn){
   document.querySelectorAll('.tab-btn,.bnav-btn').forEach(el=>el.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
   document.querySelectorAll(`[onclick*="'${v}'"]`).forEach(el=>el.classList.add('active'));
-  // Toggle grocery action bar via class (CSS media query handles actual visibility)
-  const gab=document.getElementById('grocery-action-bar');
-  if(gab){if(v==='grocery')gab.classList.add('active-tab');else gab.classList.remove('active-tab');}
+
   if(v==='planner'){renderPlanner();renderHistory();}
   if(v==='grocery'){renderGrocery();updateGroceryBadge();}
   if(v==='recipes')renderRecipes();
@@ -1421,15 +1415,11 @@ function updateGroceryBadge(){
   const bnav=document.getElementById('bnav-grocery-badge');
   const clearBtn=document.getElementById('btn-clear-checked');
   const uncheckBtn=document.getElementById('btn-uncheck-all');
-  if(badge){if(unchecked>0&&total>0){badge.textContent=unchecked;badge.style.display='inline-flex';}else{badge.style.display='none';}}
-  if(bnav){if(unchecked>0&&total>0){bnav.textContent=unchecked>9?'9+':unchecked;bnav.style.display='flex';}else{bnav.style.display='none';}}
+  if(badge){if(unchecked>0&&total>0){badge.textContent=unchecked>99?'99+':unchecked;badge.style.display='inline-flex';}else{badge.style.display='none';}}
+  if(bnav){if(unchecked>0&&total>0){bnav.textContent=unchecked>99?'99+':unchecked;bnav.style.display='flex';}else{bnav.style.display='none';}}
   if(clearBtn){clearBtn.style.display=checkedCount>0?'inline-flex':'none';}
   if(uncheckBtn){uncheckBtn.style.display=checkedCount>0?'inline-flex':'none';}
-  // Mobile bar buttons
-  const mobClear=document.getElementById('mob-clear-checked');
-  const mobUncheck=document.getElementById('mob-uncheck-all');
-  if(mobClear){mobClear.style.display=checkedCount>0?'inline-flex':'none';}
-  if(mobUncheck){mobUncheck.style.display=checkedCount>0?'inline-flex':'none';}
+
 }
 
 function exportText(){
@@ -2000,6 +1990,19 @@ function buildIngredientView(ingredients){
   });
   return html;
 }
+
+
+// ── Overflow menu (grocery ⋯ button) ──────────────────────────────────────
+function toggleOverflowMenu(e){
+  e.stopPropagation();
+  const menu=document.getElementById('grocery-overflow-menu');
+  if(menu)menu.classList.toggle('open');
+}
+function closeOverflowMenu(){
+  const menu=document.getElementById('grocery-overflow-menu');
+  if(menu)menu.classList.remove('open');
+}
+document.addEventListener('click',function(){closeOverflowMenu();});
 
 </script>
 
