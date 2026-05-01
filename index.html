@@ -121,7 +121,7 @@ main{max-width:1140px;margin:0 auto;padding:32px 24px}
 .recipe-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
 .recipe-card{background:var(--surface);border-radius:var(--r-lg);border:1px solid var(--border);padding:20px;transition:all .22s;display:flex;flex-direction:column;position:relative;overflow:hidden;cursor:pointer}
 .recipe-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--mint));opacity:0;transition:opacity .22s}
-.recipe-card:hover{box-shadow:var(--shadow);transform:translateY(-2px);border-color:var(--border2)}
+.recipe-card:hover{box-shadow:var(--shadow);border-color:var(--border2)}
 .recipe-card:hover::after{opacity:1}
 .recipe-name{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:var(--text);margin-bottom:6px;line-height:1.3}
 .recipe-meta{display:flex;gap:8px;font-size:.74rem;color:var(--text3);margin-bottom:8px;flex-wrap:wrap}
@@ -460,6 +460,9 @@ main{max-width:1140px;margin:0 auto;padding:32px 24px}
 }
 
 /* RESPONSIVE */
+@media(hover:hover){
+  .recipe-card:hover{transform:translateY(-2px)}
+}
 @media(max-width:768px){
   .top-nav .nav-tabs{display:none}
   .bottom-nav{display:block}
@@ -925,8 +928,8 @@ function renderRecipes(){
     const tags=[...(r.tags||[]).map(t=>`<span class="tag ${TAG_CSS[t]||''}">${TAG_LBL[t]||t}</span>`),(r.customTags||[]).map(t=>`<span class="tag" style="background:var(--violet-bg);color:var(--violet)">${esc(t)}</span>`)].flat().join('');
     const rating=r.rating||0;
     const starsHtml=`<div class="stars-row" onclick="event.stopPropagation()">${[1,2,3,4,5].map(i=>`<span class="star${i<=rating?' lit':''}" onclick="openRateModal('${r.id}',event)">★</span>`).join('')}<span class="rating-label">${rating?RATE_HINTS[rating-1]:'Not rated yet'}</span></div>`;
-    return `<div class="recipe-card" onclick="handleCardClick(event,'${r.id}')">
-      <button class="recipe-card-menu-btn" onclick="openCardMenu(event,'${r.id}',this)" title="More options">⋯</button>
+    return `<div class="recipe-card" data-recipe-id="${r.id}">
+      <button class="recipe-card-menu-btn" data-recipe-id="${r.id}" title="More options">⋯</button>
       <div class="recipe-name" style="padding-right:32px">${esc(r.name)}</div>
       <div class="recipe-meta">
         <span>👥 ${r.portions}p</span>${r.time?`<span>⏱ ${esc(r.time)}</span>`:''}
@@ -939,6 +942,7 @@ function renderRecipes(){
     </div>`;
   }).join('');
   updateBadge();
+  attachCardListeners();
 }
 
 function openRecipeModal(id=null){
@@ -2013,12 +2017,39 @@ document.addEventListener('click',function(){closeOverflowMenu();});
 
 // ── Recipe card click + menu ──────────────────────────────────────────────
 function handleCardClick(e, id){
-  // Don't open detail if clicking the menu button or stars
   if(e.target.closest('.recipe-card-menu-btn')||
      e.target.closest('.recipe-card-menu')||
      e.target.closest('.stars-row')||
      e.target.tagName==='A') return;
   viewRecipe(id);
+}
+
+// Attach card events after render — proper touch + click handling
+function attachCardListeners(){
+  document.querySelectorAll('.recipe-card').forEach(card=>{
+    // Remove any previously attached listeners by cloning
+    const fresh=card.cloneNode(true);
+    card.parentNode.replaceChild(fresh,card);
+    const id=fresh.dataset.recipeId;
+    let touchMoved=false;
+    fresh.addEventListener('touchstart',()=>{touchMoved=false;},{passive:true});
+    fresh.addEventListener('touchmove',()=>{touchMoved=true;},{passive:true});
+    fresh.addEventListener('touchend',e=>{
+      if(touchMoved)return; // was a scroll, not a tap
+      handleCardClick(e,id);
+    });
+    fresh.addEventListener('click',e=>{
+      // On desktop only (touch devices fire touchend above)
+      if(!e.isTrusted||window.matchMedia('(hover:none)').matches)return;
+      handleCardClick(e,id);
+    });
+    // Menu button
+    const menuBtn=fresh.querySelector('.recipe-card-menu-btn');
+    if(menuBtn){
+      menuBtn.addEventListener('touchend',e=>{e.stopPropagation();openCardMenu(e,id,menuBtn);});
+      menuBtn.addEventListener('click',e=>{e.stopPropagation();openCardMenu(e,id,menuBtn);});
+    }
+  });
 }
 
 let activeCardMenu=null;
