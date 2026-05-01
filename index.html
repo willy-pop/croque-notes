@@ -1633,13 +1633,13 @@ function renderInspireGrid(){
       '<div class="inspire-card-actions">'+
         (isAdded
           ?'<span class="inspire-added-badge">Already in your recipes</span>'
-          :'<button class="btn btn-primary btn-sm" onclick="addIR(''+r.id+'')">+ Add to my recipes</button>'+
-           '<button class="btn btn-secondary btn-sm" onclick="dismissIR(''+r.id+'')">Not for us</button>')+
+          :'<button class="btn btn-primary btn-sm" onclick="addIR(this)" data-rid="'+r.id+'">+ Add to my recipes</button>'+
+           '<button class="btn btn-secondary btn-sm" onclick="dismissIR(this)" data-rid="'+r.id+'">Not for us</button>')+
       '</div></div>';
   }).join('');
 }
 
-function addIR(id){
+function addIR(btn){var id=btn.dataset.rid;
   const r=IR.find(x=>x.id===id);if(!r)return;
   const newId=Date.now().toString();
   fbSet('recipes/'+newId,{id:newId,name:r.name,portions:4,defaultPortions:4,time:r.tm,source:r.src,steps:'',ingredients:r.ing,tags:r.tgs||[],customTags:['Want to try'],lastCooked:null,rating:0});
@@ -1649,7 +1649,7 @@ function addIR(id){
   renderInspireGrid();
 }
 
-function dismissIR(id){
+function dismissIR(btn){var id=btn.dataset.rid;
   const d=JSON.parse(localStorage.getItem('cn-inspire-dismissed')||'[]');
   if(!d.includes(id))d.push(id);
   localStorage.setItem('cn-inspire-dismissed',JSON.stringify(d));
